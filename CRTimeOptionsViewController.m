@@ -52,6 +52,15 @@
     [self doButton];
 }
 
+- (void)viewWillAppear:(BOOL)animated{
+    [self.houTable selectRowAtIndexPath:[NSIndexPath indexPathForRow:7 inSection:0]
+                               animated:NO
+                         scrollPosition:UITableViewScrollPositionNone];
+    [self.minTable selectRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]
+                               animated:NO
+                         scrollPosition:UITableViewScrollPositionNone];
+}
+
 - (void)parkSunset{
     self.park.layer.shadowOpacity = 0.27;
 }
@@ -234,7 +243,7 @@
     if( tableView.tag == 1024 )
         return 24;
     else if( tableView.tag == 1060 )
-        return 60;
+        return 12;
     
     return 0;
 }
@@ -251,16 +260,20 @@
     
     NSString *text;
     if( tableView.tag == 1024 ){
-        text = indexPath.row < 13 ? [NSString stringWithFormat:@"%ld am", indexPath.row] :
-        [NSString stringWithFormat:@"%ld pm", indexPath.row - 12];
+        if( indexPath.row == 7 ) cell.selected = YES;
+        
+        text = indexPath.row < 10 ? [NSString stringWithFormat:@"0%ld o'clock", indexPath.row] :
+        [NSString stringWithFormat:@"%ld o'clock", indexPath.row];
         
         cell.timeLabel.text = text;
     }else if( tableView.tag == 1060 ){
-        text = indexPath.row < 10 ? [NSString stringWithFormat:@"0%ld minutes", indexPath.row] :
-        [NSString stringWithFormat:@"%ld minutes", indexPath.row];
+        text = indexPath.row * 5 < 10 ? [NSString stringWithFormat:@"0%ld minutes", indexPath.row * 5] :
+        [NSString stringWithFormat:@"%ld minutes", indexPath.row * 5];
         
         cell.timeLabel.text = text;
     }
+    
+    cell.highlighted = YES;
     
     return cell;
 }
@@ -272,7 +285,7 @@
     if( tableView.tag == 1024 ){
         self.hour = indexPath.row;
     }else if( tableView.tag == 1060 ){
-        self.min = indexPath.row;
+        self.min = indexPath.row * 5;
     }
 
     self.option.text = self.min < 10 ? [NSString stringWithFormat:@"%ld:0%ld", self.hour, self.min] :

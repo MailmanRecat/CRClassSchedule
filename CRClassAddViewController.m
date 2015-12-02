@@ -31,6 +31,9 @@
 @property( nonatomic, strong ) CRLabelView *location;
 @property( nonatomic, strong ) UILabel *classname;
 
+@property( nonatomic, strong ) UIView *bottomBear;
+@property( nonatomic, strong ) UIButton *saveButton;
+
 @property( nonatomic, strong ) UIScrollView *bear;
 @property( nonatomic, strong ) NSLayoutConstraint *bearBottomLayoutGuide;
 @property( nonatomic, strong ) CRTextFieldView *teacher;
@@ -52,6 +55,7 @@
     
     [self doBear];
     [self doPark];
+    [self doBottomBear];
     
     [self addNotificationObserver];
 }
@@ -93,7 +97,11 @@
 
 - (void)CRTimeLongDidSelected:(NSNotification *)userInfo{
     NSDictionary *info = [userInfo userInfo];
-    self.timeLong.textLabel.text = (NSString *)info[CRTimeStringKey];
+    CRTimeOptionType type = [info[CRTimeOptionTypeKey] integerValue];
+    if( type == CRTimeOptionTypeClassmins )
+        self.timeLong.textLabel.text = (NSString *)info[CRTimeStringKey];
+    if( type == CRTimeOptionTypeWeekday )
+        self.weekday.textLabel.text = (NSString *)info[CRTimeStringKey];
 }
 
 - (void)willKeyBoardShow:(NSNotification *)keyboardInfo{
@@ -160,7 +168,7 @@
                                                              constant:56 + 72 + STATUS_BAR_HEIGHT]];
     [self.view addConstraints:cons];
     [cons removeAllObjects];
-    CGFloat CRLabelHeight = 32;
+    CGFloat CRLabelHeight = 28;
     [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:backButton to:self.park type:EdgeLeftZero]];
     [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:backButton to:self.park type:EdgeTopZero
                                                             constant:STATUS_BAR_HEIGHT]];
@@ -178,11 +186,11 @@
     [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:self.classname to:self.park type:EdgeBottomZero]];
     [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:self.classname to:self.park type:EdgeLeftRightZero constant:56]];
     [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearFixed:self.classname type:SpactecledBearFixedHeight
-                                                             constant:(56 + 72) - 8 - CRLabelHeight - 8 - 8 - CRLabelHeight]];
+                                                             constant:(56 + 72) - 8 - CRLabelHeight - 8 - CRLabelHeight]];
     [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:classnameButton to:self.park type:EdgeBottomZero]];
     [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:classnameButton to:self.park type:EdgeLeftRightZero constant:56]];
     [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearFixed:classnameButton type:SpactecledBearFixedHeight
-                                                             constant:(56 + 72) - 8 - CRLabelHeight - 8 - 8 - CRLabelHeight]];
+                                                             constant:(56 + 72) - 8 - CRLabelHeight - 8 - CRLabelHeight]];
     [self.park addConstraints:cons];
     [cons removeAllObjects];
     
@@ -208,10 +216,31 @@
     [backButton addTarget:self action:@selector(dismissSelf) forControlEvents:UIControlEventTouchUpInside];
 }
 
+- (void)doBottomBear{
+    NSMutableArray *cons = [NSMutableArray new];
+    self.bottomBear = [UIView new];
+    [self.view addAutolayoutSubviews:@[ self.bottomBear ]];
+    self.saveButton = [UIButton new];
+    [self.bottomBear addAutolayoutSubviews:@[ self.saveButton ]];
+    [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:self.bottomBear to:self.view type:EdgeBottomLeftRightZero]];
+    [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearFixed:self.bottomBear type:SpactecledBearFixedHeight constant:52]];
+    [self.view addConstraints:cons];
+    [cons removeAllObjects];
+    [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:self.saveButton to:self.bottomBear type:EdgeTopBottomZero constant:8]];
+    [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:self.saveButton to:self.bottomBear type:EdgeRightZero constant:8]];
+    [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearFixed:self.saveButton type:SpactecledBearFixedWidth constant:72]];
+    [self.bottomBear addConstraints:cons];
+    [cons removeAllObjects];
+    
+    self.saveButton.backgroundColor = [UIColor clearColor];
+    self.saveButton.titleLabel.font = [CRSettings appFontOfSize:15];
+    [self.saveButton setTitle:@"Save" forState:UIControlStateNormal];
+    [self.saveButton setTitleColor:[UIColor CRColorType:CRColorTypeGoogleMapBlue] forState:UIControlStateNormal];
+}
+
 - (void)doBear{
     NSMutableArray *cons = [NSMutableArray new];
     self.bear = [UIScrollView new];
-//    self.bear.backgroundColor = [UIColor randomColor];
     [self.view addAutolayoutSubviews:@[ self.bear ]];
     [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:self.bear to:self.view type:EdgeTopLeftRightZero]];
     self.bearBottomLayoutGuide = [NSLayoutConstraint constraintWithItem:self.view
@@ -221,20 +250,20 @@
                                                               attribute:NSLayoutAttributeBottom
                                                              multiplier:1.0
                                                                constant:0];
-//    [cons addObject:self.bearBottomLayoutGuide];
     [self.view addConstraint:self.bearBottomLayoutGuide];
     [self.view addConstraints:cons];
     [cons removeAllObjects];
     
     self.teacher = [CRTextFieldView new];
+    self.weekday = [CRButtonView new];
     self.timeLong = [CRButtonView new];
     self.colorType = [CRButtonView new];
     self.userInfo = [CRTextView new];
-    [self.bear autolayoutSubviews:@[ self.teacher, self.timeLong, self.colorType, self.userInfo ]
+    [self.bear autolayoutSubviews:@[ self.teacher, self.weekday, self.timeLong, self.colorType, self.userInfo ]
                        edgeInsets:UIEdgeInsetsMake(STATUS_BAR_HEIGHT + 56 + 72, 0, 0, 0)
                        multiplier:1.0
                          constant:0
-                        constants:@[ @60, @60, @60, @152 ]
+                        constants:@[ @64, @64, @64, @64, @192 ]
                  stackOrientation:autolayoutStackOrientationVertical
                         direction:autolayoutStackDirectionTop
                            option:autolayoutStackOptionTrailing];
@@ -244,10 +273,13 @@
     self.teacher.placeholder = @"Edit teacher";
     self.teacher.tintColor = [UIColor CRColorType:CRColorTypeGoogleMapBlue];
     
+    self.weekday.icon.text = [UIFont mdiCalendar];
+    self.weekday.textLabel.text = [CRSettings weekday];
+    [self.weekday addTarget:self action:@selector(CRWeekdayViewController) forControlEvents:UIControlEventTouchUpInside];
+    
     self.timeLong.icon.text = [UIFont mdiClock];
     self.timeLong.textLabel.text = @"40 mins";
-//    [self.timeLong addTarget:self action:@selector(CRTimeOptionViewController) forControlEvents:UIControlEventTouchUpInside];
-    [self.timeLong addTarget:self action:@selector(CRWeekdayViewController) forControlEvents:UIControlEventTouchUpInside];
+    [self.timeLong addTarget:self action:@selector(CRTimeOptionViewController) forControlEvents:UIControlEventTouchUpInside];
     
     self.colorType.icon.text = [UIFont mdiCheckboxBlankCircle];
     self.colorType.icon.textColor = [UIColor CRColorType:CRColorTypeGoogleMapBlue];

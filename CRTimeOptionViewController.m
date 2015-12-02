@@ -17,6 +17,7 @@
 #import "HuskyButton.h"
 #import "UIColor+CRColor.h"
 #import "CRTimeOptionItem.h"
+#import "TimeTalkerBird.h"
 
 @interface CRTimeOptionViewController ()<UITableViewDataSource, UITableViewDelegate>
 
@@ -45,18 +46,23 @@
     [self checkOptionString];
 }
 
+- (void)viewWillAppear:(BOOL)animated{
+    if( self.type == CRTimeOptionTypeWeekday )
+        [self.bear selectRowAtIndexPath:[NSIndexPath indexPathForRow:[TimeTalkerBird currentDate].weekday - 1 inSection:0]
+                               animated:NO
+                         scrollPosition:UITableViewScrollPositionNone];
+}
+
 - (void)checkOptionString{
     
-    self.weeknames = @[ @"Monday", @"Tuesday", @"Wednesday", @"Thursday", @"Friday", @"Saturday", @"Sunday" ];
+    self.weeknames = @[ @"Sunday", @"Monday", @"Tuesday", @"Wednesday", @"Thursday", @"Friday", @"Saturday" ];
     
     if( self.type == CRTimeOptionTypeClassmins ){
-        self.optionString = @"40 mins";
+        self.optionString = self.option.text = @"40 mins";
         self.optionName.text = @"Minutes";
-        self.option.text = @"40 mins";
     }else if( self.type == CRTimeOptionTypeWeekday ){
-        self.optionString = @"Monday";
+        self.optionString = self.option.text = [CRSettings weekday];
         self.optionName.text = @"weekday";
-        self.option.text = @"Monday";
     }
 }
 
@@ -104,11 +110,9 @@
     self.park.backgroundColor = [UIColor CRColorType:CRColorTypeGoogleMapBlue];
     [self.park makeShadowWithSize:CGSizeMake(0, 1) opacity:0 radius:1.7];
     
-//    self.optionName.text = @"Minutes";
     self.optionName.font = [CRSettings appFontOfSize:25];
     self.optionName.textColor = [UIColor whiteColor];
     
-//    self.option.text = [NSString stringWithFormat:@"40 mins"];
     self.option.font = [CRSettings appFontOfSize:29];
     self.option.textColor = [UIColor whiteColor];
     

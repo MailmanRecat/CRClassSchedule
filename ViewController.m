@@ -43,10 +43,17 @@
     [self doPark];
     [self doActionButton];
     [self doBear];
+    
+    [self handlerShortcut];
 }
 
 - (void)viewDidAppear:(BOOL)animated{
     [self CRClassAddViewController];
+}
+
+- (void)handlerShortcut{
+    if( [self.title isEqualToString:@"startWithShortcutAdd"] )
+        [self CRClassAddViewController];
 }
 
 - (void)doPark{

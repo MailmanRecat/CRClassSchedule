@@ -12,12 +12,12 @@
 
 @property( nonatomic, strong ) NSString *weekday;
 @property( nonatomic, strong ) NSString *timeStart;
-@property( nonatomic, strong ) NSString *timeLong;
-@property( nonatomic, strong ) NSString *classname;
-@property( nonatomic, strong ) NSString *type;
-@property( nonatomic, strong ) NSString *teacher;
 @property( nonatomic, strong ) NSString *location;
+@property( nonatomic, strong ) NSString *classname;
+@property( nonatomic, strong ) NSString *teacher;
+@property( nonatomic, strong ) NSString *timeLong;
 @property( nonatomic, strong ) NSString *colorStyle;
 @property( nonatomic, strong ) NSString *userInfo;
+@property( nonatomic, strong ) NSString *type;
 
 @end

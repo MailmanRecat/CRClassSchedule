@@ -7,6 +7,7 @@
 //
 
 #import "AppDelegate.h"
+#import "ViewController.h"
 
 @interface AppDelegate ()
 
@@ -22,6 +23,13 @@
                                                                             userInfo:nil];
     
     [UIApplication sharedApplication].shortcutItems = @[ add ];
+}
+
+- (void)application:(UIApplication *)application performActionForShortcutItem:(UIApplicationShortcutItem *)shortcutItem completionHandler:(void (^)(BOOL))completionHandler{
+    
+    if( [shortcutItem.type isEqualToString:@"shortcutItemAdd"] )
+        self.window.rootViewController.title = @"startWithShortcutAdd";
+        
 }
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {

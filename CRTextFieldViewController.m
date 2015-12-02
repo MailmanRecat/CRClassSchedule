@@ -71,6 +71,7 @@
     self.parkLeftButton.titleLabel.font = [UIFont MaterialDesignIconsWithSize:21];
     [self.parkLeftButton setTitleColor:[UIColor colorWithWhite:137 / 255.0 alpha:1] forState:UIControlStateNormal];
     [self.parkLeftButton setTitle:[UIFont mdiArrowLeft] forState:UIControlStateNormal];
+    [self.parkLeftButton addTarget:self action:@selector(dismissSelf) forControlEvents:UIControlEventTouchUpInside];
     
     self.parkTextField.delegate = self;
     self.parkTextField.placeholder = self.title;
