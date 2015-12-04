@@ -8,9 +8,14 @@
 
 #import <UIKit/UIKit.h>
 
-static NSString *const CRTextFieldViewControllerNotificationKey = @"CRTextFieldViewControllerNotificationKey";
-static NSString *const CRTextFieldStringKey = @"CRTextFieldStringKey";
+@protocol CRTextFieldVCHandler <NSObject>
+
+- (void)CRTextFieldVCDidDismiss:(NSString *)textFieldString;
+
+@end
 
 @interface CRTextFieldViewController : UIViewController
+
+@property( nonatomic, weak ) id<CRTextFieldVCHandler> handler;
 
 @end

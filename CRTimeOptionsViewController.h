@@ -8,9 +8,17 @@
 
 #import <UIKit/UIKit.h>
 
-static NSString *const CRTimeOptionsDidSelectedNotificationKey = @"CRTimeOptionsDidSelectedNotificationKey";
-static NSString *const CRTimeStringKey = @"CRTimeStringKey";
+@protocol CRTimeOptionsVCHandler <NSObject>
+
+- (void)CRTimeOptionsVCDidDismissWithOption:(NSString *)option;
+
+@end
 
 @interface CRTimeOptionsViewController : UIViewController
+
+@property( nonatomic, weak ) id<CRTimeOptionsVCHandler> handler;
+
+@property( nonatomic, assign ) NSUInteger selectedHour;
+@property( nonatomic, assign ) NSUInteger selectedMins;
 
 @end

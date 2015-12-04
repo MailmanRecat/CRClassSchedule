@@ -9,7 +9,16 @@
 #define STATUS_BAR_HEIGHT [UIApplication sharedApplication].statusBarFrame.size.height
 
 #import <UIKit/UIKit.h>
+#import "CRClassSchedule.h"
 
 @interface CRClassAddViewController : UIViewController
+
+@property( nonatomic, strong ) CRClassSchedule *classSchedule;
+
+@property( nonatomic, assign ) BOOL isPreview;
+
+- (instancetype)initFromClassSchedule:(CRClassSchedule *)classSchedule;
+
+- (void)showDismissButton;
 
 @end

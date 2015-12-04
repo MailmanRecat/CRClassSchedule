@@ -7,7 +7,8 @@
 //
 
 #import "AppDelegate.h"
-#import "ViewController.h"
+
+#import "CRTestFunction.h"
 
 @interface AppDelegate ()
 
@@ -33,6 +34,10 @@
 }
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
+    
+//    [CRTestFunction runCRTestFunc];
+//    [CRTestFunction insertAAccount];
+    
     [self doShortItems];
     return YES;
 }

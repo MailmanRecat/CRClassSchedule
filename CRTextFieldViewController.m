@@ -98,8 +98,8 @@
 
 - (void)dismissSelf{
     [self dismissViewControllerAnimated:YES completion:^{
-        [[NSNotificationCenter defaultCenter] postNotificationName:CRTextFieldViewControllerNotificationKey
-                                                            object:self userInfo:@{ CRTextFieldStringKey: self.parkTextField.text }];
+        if( self.handler && [self.handler respondsToSelector:@selector(CRTextFieldVCDidDismiss:)] )
+            [self.handler CRTextFieldVCDidDismiss:self.parkTextField.text];
     }];
 }
 

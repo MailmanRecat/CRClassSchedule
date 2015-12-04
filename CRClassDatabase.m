@@ -16,14 +16,17 @@ static NSString *const CRClassDatabaseThursdayKey = @"CRClassDatabaseThursdayKey
 static NSString *const CRClassDatabaseFridayKey = @"CRClassDatabaseFridayKey";
 static NSString *const CRClassDatabaseSaturdayKey = @"CRClassDatabaseSaturdayKey";
 
+static NSString *const CRClassDatabaseKey = @"CRCLASSDATABASEKEY";
+
+static NSString *const CRClassAccountDataBaseKEY = @"CRCLASSACCOUNTDATABASEKEY";
+
 @interface CRClassDatabase()
 
 @end
 
 @implementation CRClassDatabase
 
-+ (BOOL)insert:(CRClassSchedule *)schedule{
-    
++ (BOOL)insertCRClassSchedule:(CRClassSchedule *)schedule{
     NSArray *row = @[
                      schedule.weekday,
                      schedule.timeStart,
@@ -31,7 +34,7 @@ static NSString *const CRClassDatabaseSaturdayKey = @"CRClassDatabaseSaturdayKey
                      schedule.classname,
                      schedule.teacher,
                      schedule.timeLong,
-                     schedule.colorStyle,
+                     schedule.colorType,
                      schedule.userInfo,
                      schedule.type
                      ];
@@ -46,8 +49,50 @@ static NSString *const CRClassDatabaseSaturdayKey = @"CRClassDatabaseSaturdayKey
     return YES;
 }
 
++ (BOOL)insertCRClassAccount:(CRClassAccount *)account{
+    NSArray *createAccount = @[ account.ID, account.colorType ];
+    
+    NSMutableArray *accounts = [[NSMutableArray alloc] initWithArray:[self selectAccountFromAll]];
+    [accounts addObject:createAccount];
+    
+    [[NSUserDefaults standardUserDefaults] setObject:accounts forKey:CRClassAccountDataBaseKEY];
+    [[NSUserDefaults standardUserDefaults] synchronize];
+    
+    return YES;
+}
+
++ (NSArray *)selectAccountFromAll{
+    NSArray *accounts;
+    accounts = [[NSUserDefaults standardUserDefaults] objectForKey:CRClassAccountDataBaseKEY];
+    if( accounts ) return accounts;
+    
+    return [NSArray new];
+}
+
++ (CRClassAccount *)selectCRClassAccountFromID:(NSString *)ID{
+    NSArray *accounts = [self selectAccountFromAll];
+    __block CRClassAccount *classAccount;
+    
+    [accounts enumerateObjectsUsingBlock:^(id obj, NSUInteger indes, BOOL *sS){
+        NSArray *account = (NSArray *)obj;
+        if( [[account firstObject] isEqualToString:ID] ){
+            classAccount = [[CRClassAccount alloc] initFromDictionary:@{
+                                                                        CRClassAccountIDKEY: account.firstObject,
+                                                                        CRClassAccountColorTypeKEY: account.lastObject
+                                                                        }];
+            *sS = YES;
+        }
+    }];
+    
+    return classAccount;
+}
+
 + (NSArray *)selectClassFromWeekday:(NSString *)day{
     return [self selectClass:[self CRClassDatabaseKeyFromWeekday:day]];
+}
+
++ (NSArray *)selectClassFromUserName:(NSString *)name{
+    return [NSArray new];
 }
 
 + (NSArray *)selectClass:(NSString *)key{

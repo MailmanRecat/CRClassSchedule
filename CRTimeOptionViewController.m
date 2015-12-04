@@ -42,26 +42,31 @@
     
     [self doBear];
     [self doPark];
-    [self doButton];
+//    [self doButton];
     [self checkOptionString];
 }
 
 - (void)viewWillAppear:(BOOL)animated{
     if( self.type == CRTimeOptionTypeWeekday )
-        [self.bear selectRowAtIndexPath:[NSIndexPath indexPathForRow:[TimeTalkerBird currentDate].weekday - 1 inSection:0]
+        [self.bear selectRowAtIndexPath:[NSIndexPath indexPathForRow:self.weekday ? self.weekday - 1 : [TimeTalkerBird currentDate].weekday - 1
+                                                           inSection:0]
                                animated:NO
                          scrollPosition:UITableViewScrollPositionNone];
+    if( self.type == CRTimeOptionTypeClassmins )
+        [self.bear selectRowAtIndexPath:[NSIndexPath indexPathForRow:self.mins inSection:0]
+                               animated:NO
+                         scrollPosition:UITableViewScrollPositionTop];
 }
 
 - (void)checkOptionString{
     
-    self.weeknames = @[ @"Sunday", @"Monday", @"Tuesday", @"Wednesday", @"Thursday", @"Friday", @"Saturday" ];
+    self.weeknames = @[ @"Monday", @"Tuesday", @"Wednesday", @"Thursday", @"Friday", @"Saturday", @"Sunday" ];
     
     if( self.type == CRTimeOptionTypeClassmins ){
-        self.optionString = self.option.text = @"40 mins";
+        self.optionString = self.option.text = [self classminsWithIndexPath:[NSIndexPath indexPathForRow:self.mins inSection:0]];
         self.optionName.text = @"Minutes";
     }else if( self.type == CRTimeOptionTypeWeekday ){
-        self.optionString = self.option.text = [CRSettings weekday];
+        self.optionString = self.option.text = self.weekday ? self.weeknames[self.weekday - 1] : [CRSettings weekday];
         self.optionName.text = @"weekday";
     }
 }
@@ -154,7 +159,7 @@
     [cons removeAllObjects];
     
     self.bear.separatorStyle = UITableViewCellSeparatorStyleNone;
-    self.bear.contentInset = UIEdgeInsetsMake(56 + 72 + STATUS_BAR_HEIGHT, 0, 52, 0);
+    self.bear.contentInset = UIEdgeInsetsMake(56 + 72 + STATUS_BAR_HEIGHT, 0, 0, 0);
     self.bear.contentOffset = CGPointMake(0, -(56 + 72 + STATUS_BAR_HEIGHT));
     self.bear.showsVerticalScrollIndicator = NO;
     self.bear.delegate = self;
@@ -206,6 +211,8 @@
         self.option.text = self.optionString = [self classminsWithIndexPath:indexPath];
     if( self.type == CRTimeOptionTypeWeekday )
         self.option.text = self.optionString = self.weeknames[indexPath.row];
+    
+    [self dismissSelf];
 }
 
 - (NSString *)classminsWithIndexPath:(NSIndexPath *)indexPath{
@@ -228,12 +235,8 @@
 
 - (void)dismissSelf{
     [self dismissViewControllerAnimated:YES completion:^{
-        [[NSNotificationCenter defaultCenter] postNotificationName:CRTimeOptionDidSelectedNotificationKey
-                                                            object:self
-                                                          userInfo:@{
-                                                                     CRTimeOptionStringKey: self.optionString,
-                                                                     CRTimeOptionTypeKey: @(self.type)
-                                                                     }];
+        if( self.handler && [self.handler respondsToSelector:@selector(CRTimeOptionVCDidDismissWithType:option:)] )
+            [self.handler CRTimeOptionVCDidDismissWithType:self.type option:self.optionString];
     }];
 }
 

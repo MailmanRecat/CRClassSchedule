@@ -27,8 +27,8 @@
         [self.icon addConstraints:[NSLayoutConstraint SpactecledBearFixed:self.icon type:SpactecledBearFixedEqual constant:56]];
         
         self.icon.textAlignment = NSTextAlignmentCenter;
-        self.icon.font = [UIFont MaterialDesignIconsWithSize:17];
-        self.icon.textColor = [UIColor colorWithWhite:137 / 255.0 alpha:1];
+        self.icon.font = [UIFont MaterialDesignIconsWithSize:21];
+        self.icon.textColor = [UIColor colorWithWhite:117 / 255.0 alpha:1];
         self.leftView = self.icon;
         
         self.borderBottom = [CALayer layer];

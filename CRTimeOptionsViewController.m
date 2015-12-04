@@ -34,8 +34,6 @@
 @property( nonatomic, strong ) UITableView *minTable;
 @property( nonatomic, strong ) NSLayoutConstraint *swipeConstraint;
 
-@property( nonatomic, assign ) BOOL once;
-
 @end
 
 @implementation CRTimeOptionsViewController
@@ -53,12 +51,12 @@
 }
 
 - (void)viewWillAppear:(BOOL)animated{
-    [self.houTable selectRowAtIndexPath:[NSIndexPath indexPathForRow:7 inSection:0]
+    [self.houTable selectRowAtIndexPath:[NSIndexPath indexPathForRow:self.selectedHour ? self.selectedHour : 7 inSection:0]
                                animated:NO
-                         scrollPosition:UITableViewScrollPositionNone];
-    [self.minTable selectRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]
+                         scrollPosition:UITableViewScrollPositionTop];
+    [self.minTable selectRowAtIndexPath:[NSIndexPath indexPathForRow:self.selectedMins ? self.selectedMins : 0 inSection:0]
                                animated:NO
-                         scrollPosition:UITableViewScrollPositionNone];
+                         scrollPosition:UITableViewScrollPositionTop];
 }
 
 - (void)parkSunset{
@@ -292,21 +290,16 @@
     [NSString stringWithFormat:@"%ld:%ld", self.hour, self.min];
     
     self.timeString = self.option.text;
+    
+    if( tableView.tag == 1060 )
+        [self dismissSelf];
 }
 
 - (void)dismissSelf{
     [self dismissViewControllerAnimated:YES completion:^{
-        [[NSNotificationCenter defaultCenter] postNotificationName:CRTimeOptionsDidSelectedNotificationKey
-                                                            object:self
-                                                          userInfo:@{ CRTimeStringKey: self.timeString }];
+        if( self.handler && [self.handler respondsToSelector:@selector(CRTimeOptionsVCDidDismissWithOption:)] )
+            [self.handler CRTimeOptionsVCDidDismissWithOption:self.timeString];
     }];
-}
-
-- (void)viewDidLayoutSubviews{
-    if( !self.once ){
-        self.houTable.contentOffset = CGPointMake(0, 56 * 7 - ( 56 + 72 + STATUS_BAR_HEIGHT ));
-        self.once = YES;
-    }
 }
 
 - (UIStatusBarStyle)preferredStatusBarStyle{

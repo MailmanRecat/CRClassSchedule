@@ -21,8 +21,8 @@
         
         [self doLayout];
         
-        self.icon.font = [UIFont MaterialDesignIconsWithSize:17];
-        self.icon.textColor = [UIColor colorWithWhite:137 / 255.0 alpha:1];
+        self.icon.font = [UIFont MaterialDesignIconsWithSize:21];
+        self.icon.textColor = [UIColor colorWithWhite:117 / 255.0 alpha:1];
         self.icon.textAlignment = NSTextAlignmentCenter;
     }
     return self;

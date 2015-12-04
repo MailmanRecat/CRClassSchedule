@@ -8,16 +8,9 @@
 
 #import <UIKit/UIKit.h>
 
-@protocol CRClassTableViewCellDelegate <NSObject>
-
-- (void)CRClassTableViewCellSelectedHandler:(NSIndexPath *)indexPath;
-
-@end
-
 @interface CRClassTableViewCell : UITableViewCell
 
-@property( nonatomic, weak ) id<CRClassTableViewCellDelegate> handler;
-@property( nonatomic, strong ) NSIndexPath *indexPath;
+@property( nonatomic, strong ) UIView *wrapper;
 @property( nonatomic, strong ) UILabel *startTime;
 @property( nonatomic, strong ) UILabel *className;
 
