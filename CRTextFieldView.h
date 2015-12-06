@@ -12,4 +12,6 @@
 
 @property( nonatomic, strong ) UILabel *icon;
 
+- (void)makeBorder:(BOOL)que;
+
 @end

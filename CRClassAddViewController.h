@@ -17,8 +17,13 @@
 
 @property( nonatomic, assign ) BOOL isPreview;
 
++ (instancetype)shareFromClassSchedule:(CRClassSchedule *)classSchedule;
 - (instancetype)initFromClassSchedule:(CRClassSchedule *)classSchedule;
 
+- (void)editModel:(BOOL)edit;
+
 - (void)showDismissButton;
+- (void)makeBorder;
+- (void)makeClearBorder;
 
 @end

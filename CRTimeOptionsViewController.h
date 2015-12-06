@@ -17,8 +17,8 @@
 @interface CRTimeOptionsViewController : UIViewController
 
 @property( nonatomic, weak ) id<CRTimeOptionsVCHandler> handler;
+@property( nonatomic, strong ) NSString *curTimeString;
 
-@property( nonatomic, assign ) NSUInteger selectedHour;
-@property( nonatomic, assign ) NSUInteger selectedMins;
++ (instancetype)shareTimeOptions;
 
 @end

@@ -24,10 +24,40 @@
 @property( nonatomic, strong ) NSArray *colorNames;
 
 @property( nonatomic, strong ) NSIndexPath *curIndexPath;
+@property( nonatomic, strong ) UIColor *curColor;
 
 @end
 
 @implementation MOREColorPickerView
+
++ (NSDictionary *)CRColorTypes{
+    return @{
+             @"default": [UIColor colorWithRed:124 / 255.0 green:177 / 255.0 blue:72 / 255.0 alpha:1],
+             @"tomato": [UIColor colorWithRed:210 / 255.0 green:9 / 255.0 blue:21 / 255.0 alpha:1],
+             @"tangerine": [UIColor colorWithRed:240 / 255.0 green:81 / 255.0 blue:43 / 255.0 alpha:1],
+             @"banana": [UIColor colorWithRed:244 / 255.0 green:189 / 255.0 blue:58 / 255.0 alpha:1],
+             @"basil": [UIColor colorWithRed:22 / 255.0 green:126 / 255.0 blue:68 / 255.0 alpha:1],
+             @"sage": [UIColor colorWithRed:59 / 255.0 green:181 / 255.0 blue:123 / 255.0 alpha:1],
+             @"peacock": [UIColor colorWithRed:26 / 255.0 green:155 / 255.0 blue:225 / 255.0 alpha:1],
+             @"blueberry": [UIColor colorWithRed:65 / 255.0 green:94 / 255.0 blue:167 / 255.0 alpha:1],
+             @"lavender": [UIColor colorWithRed:121 / 255.0 green:135 / 255.0 blue:200 / 255.0 alpha:1],
+             @"grape": [UIColor colorWithRed:140 / 255.0 green:43 / 255.0 blue:167 / 255.0 alpha:1],
+             @"flamingo": [UIColor colorWithRed:227 / 255.0 green:124 / 255.0 blue:116 / 255.0 alpha:1],
+             @"graphite": [UIColor colorWithRed:99 / 255.0 green:99 / 255.0 blue:99 / 255.0 alpha:1],
+             @"black": [UIColor colorWithWhite:0 alpha:1]
+             };
+}
+
++ (instancetype)shareColorPicker{
+    static MOREColorPickerView *picker = nil;
+    if( picker ) return picker;
+    
+    static dispatch_once_t t_picker;
+    dispatch_once(&t_picker, ^{
+        picker = [MOREColorPickerView new];
+    });
+    return picker;
+}
 
 - (void)viewDidLoad{
     [super viewDidLoad];
@@ -35,10 +65,48 @@
     
     _colors = [CRSettings MORESettingColorPickerOptionsColor];
     _colorNames = [CRSettings MORESettingColorPickerOptionsName];
-    self.curIndexPath = [NSIndexPath indexPathForRow:1 inSection:0];
     
     [self doBear];
     [self doPark];
+}
+
+- (void)viewWillAppear:(BOOL)animated{
+    NSIndexPath *cur;
+    NSString *string = [self.curString lowercaseString];
+    if( [string isEqualToString:@"default"] )
+        cur = [NSIndexPath indexPathForRow:0 inSection:0];
+    else if( [string isEqualToString:@"tomato"] )
+        cur = [NSIndexPath indexPathForRow:1 inSection:0];
+    else if( [string isEqualToString:@"tangerine"] )
+        cur = [NSIndexPath indexPathForRow:2 inSection:0];
+    else if( [string isEqualToString:@"banana"] )
+        cur = [NSIndexPath indexPathForRow:3 inSection:0];
+    else if( [string isEqualToString:@"basil"] )
+        cur = [NSIndexPath indexPathForRow:4 inSection:0];
+    else if( [string isEqualToString:@"sage"] )
+        cur = [NSIndexPath indexPathForRow:5 inSection:0];
+    else if( [string isEqualToString:@"peacock"] )
+        cur = [NSIndexPath indexPathForRow:6 inSection:0];
+    else if( [string isEqualToString:@"blueberry"] )
+        cur = [NSIndexPath indexPathForRow:7 inSection:0];
+    else if( [string isEqualToString:@"lavender"] )
+        cur = [NSIndexPath indexPathForRow:8 inSection:0];
+    else if( [string isEqualToString:@"grape"] )
+        cur = [NSIndexPath indexPathForRow:9 inSection:0];
+    else if( [string isEqualToString:@"flamingo"] )
+        cur = [NSIndexPath indexPathForRow:10 inSection:0];
+    else if( [string isEqualToString:@"graphite"] )
+        cur = [NSIndexPath indexPathForRow:11 inSection:0];
+    else if( [string isEqualToString:@"black"] )
+        cur = [NSIndexPath indexPathForRow:12 inSection:0];
+    else
+        cur = [NSIndexPath indexPathForRow:0 inSection:0];
+    
+    [self.bear selectRowAtIndexPath:cur
+                           animated:NO
+                     scrollPosition:UITableViewScrollPositionMiddle];
+    self.park.backgroundColor = self.curColor = [MOREColorPickerView CRColorTypes][string];
+    self.curIndexPath = cur;
 }
 
 - (void)doPark{
@@ -46,7 +114,6 @@
     [self.view addAutolayoutSubviews:@[ _park ]];
     [self.view addConstraints:[NSLayoutConstraint SpactecledBearEdeg:_park to:self.view type:EdgeTopLeftRightZero]];
     
-    _park.backgroundColor = [UIColor randomColor];
     _park.herb.titleLabel.font = [UIFont MaterialDesignIcons];
     [_park nameplate:@"Color"];
     [_park.herb setTitle:[UIFont mdiArrowLeft] forState:UIControlStateNormal];
@@ -89,10 +156,10 @@
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath{
-    static NSString *CELL_ID = @"CELL_ID";
-    BCColorPickerCell *cell = [tableView dequeueReusableCellWithIdentifier:CELL_ID];
+    static NSString *CLCELL_ID = @"COLORCELL_ID";
+    BCColorPickerCell *cell = [tableView dequeueReusableCellWithIdentifier:CLCELL_ID];
     if( !cell ){
-        cell = [[BCColorPickerCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CELL_ID];
+        cell = [[BCColorPickerCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CLCELL_ID];
     }
     
     if( indexPath == self.curIndexPath ) [cell statusON];
@@ -109,6 +176,9 @@
     [last statusOFF];
     self.curIndexPath = indexPath;
     
+    self.curColor = cell.dot.textColor;
+    self.curString = cell.dotname.text;
+    
     [self dismissSelf];
 }
 
@@ -118,8 +188,9 @@
 
 - (void)dismissSelf{
     [self dismissViewControllerAnimated:YES completion:^{
-        if( self.handler && [self.handler respondsToSelector:@selector(CRColorPickerDidDismissHandler:)] )
-            [self.handler CRColorPickerDidDismissHandler:[UIColor randomColor]];
+        if( self.handler && [self.handler respondsToSelector:@selector(CRColorPickerDidDismissHandler:name:)] ){
+            [self.handler CRColorPickerDidDismissHandler:self.curColor name:self.curString];
+        }
     }];
 }
 

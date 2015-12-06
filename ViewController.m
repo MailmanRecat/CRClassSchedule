@@ -16,16 +16,21 @@
 #import "CRClassDatabase.h"
 #import "UIColor+CRColor.h"
 #import "HuskyButton.h"
-#import "MORETransitionAnimationDelegate.h"
 #import "CRClassTableViewCell.h"
 
+#import "CRTransitionAnimationObject.h"
 #import "CRAccountsViewController.h"
 #import "CRClassAddViewController.h"
 
-@interface ViewController ()<UIScrollViewDelegate, UIViewControllerPreviewingDelegate, UITableViewDataSource, UITableViewDelegate>
+#import "CRTestFunction.h"
 
-@property( nonatomic, strong ) MORETransitionAnimationDelegate *transitionAnimationDelegate;
+@interface ViewController ()<CRTransitionAnimationDataSource, UIScrollViewDelegate, UIViewControllerPreviewingDelegate, UITableViewDataSource, UITableViewDelegate>
+
+@property( nonatomic, strong ) CRTransitionAnimationObject *transitionAnimationObject;
+@property( nonatomic, assign ) CGRect InitialFrame;
+@property( nonatomic, strong ) CRTransitionAnimationObject *transitionAnimationDafult;
 @property( nonatomic, strong ) UIView *park;
+@property( nonatomic, strong ) NSLayoutConstraint *parkLayoutGuide;
 @property( nonatomic, strong ) UILabel *titleLabel;
 @property( nonatomic, strong ) UIButton *actionButton;
 @property( nonatomic, strong ) UIButton *actionButtonAccount;
@@ -39,16 +44,29 @@
 
 @property( nonatomic, assign ) BOOL once;
 
+@property( nonatomic, strong ) NSArray *testData;
+
 @end
 
 @implementation ViewController
+
+- (CGRect)CRTransitionAnimationFolderFinalFrame{
+    return self.view.bounds;
+}
+
+- (CGRect)CRTransitionAnimationFolderInitialFrame{
+    NSLog(@"%f %f %f %f", self.InitialFrame.origin.x, self.InitialFrame.origin.y, self.InitialFrame.size.width, self.InitialFrame.size.height);
+    return self.InitialFrame;
+}
 
 - (void)viewDidLoad {
     [super viewDidLoad];
     [[self view] setBackgroundColor:[UIColor whiteColor]];
     
     self.title = @"CRLaunch's Class Schedule";
-    self.transitionAnimationDelegate = [[MORETransitionAnimationDelegate alloc] initWithAnimationType:CRAnimationTypeDefault];
+    self.transitionAnimationObject = [CRTransitionAnimationObject folderCRTransitionAnimation];
+    self.transitionAnimationObject.dataSource = self;
+    self.transitionAnimationDafult = [CRTransitionAnimationObject defaultCRTransitionAnimation];
     self.shouldRelayoutGuide = [NSMutableArray new];
     
     [self doPark];
@@ -57,7 +75,9 @@
     [self doHeaderViews];
     
     [self handlerShortcut];
-    [self registerForPreviewingWithDelegate:self sourceView:self.view];
+    [self registerForPreviewingWithDelegate:self sourceView:self.bear];
+    
+    self.testData = [[NSUserDefaults standardUserDefaults] objectForKey:@"CRClassTestData"];
 }
 
 - (void)viewDidAppear:(BOOL)animated{
@@ -66,9 +86,9 @@
         NSUInteger index = [con.identifier integerValue];
         UIView *view = self.headerViews[index];
         CGFloat fuck = view.frame.origin.y - self.view.frame.size.height - self.bear.contentOffset.y;
-        con.constant = fuck / 4;
-        [self.view layoutIfNeeded];
+        con.constant = fuck / 3;
     }];
+    [self.bear layoutIfNeeded];
 }
 
 - (void)handlerShortcut{
@@ -85,29 +105,15 @@
 
 - (UIViewController *)previewingContext:(id<UIViewControllerPreviewing>)previewingContext viewControllerForLocation:(CGPoint)location{
     
-//    if( ![previewingContext.sourceView isKindOfClass:[UITableViewCell class]] ) return nil;
-    NSLog(@"%@", previewingContext.sourceView);
-    
-    CRClassSchedule *newClassSchedule = [[CRClassSchedule alloc] initFromDictionary:@{
-                                                                                      ClassScheduleUser: @"user",
-                                                                                      ClassScheduleWeekday: [CRSettings weekday],
-                                                                                      ClassScheduleTimeStart: @"7: 00",
-                                                                                      ClassScheduleLocation: @"Edit location",
-                                                                                      ClassScheduleClassname: @"Edit class name",
-                                                                                      ClassScheduleTeacher: @"Edit teacher",
-                                                                                      ClassScheduleTimeLong: @"40 mins",
-                                                                                      ClassScheduleColorType: @"color",
-                                                                                      ClassScheduleUserInfo: @"Add note",
-                                                                                      ClassScheduleType: @"nullable type"
-                                                                                      }];
-    
-    CRClassAddViewController *CRClassAddVC = [CRClassAddViewController new];
-    
     NSIndexPath *indexPath = [self.bear indexPathForRowAtPoint:location];
-    NSLog(@"%ld", indexPath.row);
     
+    if( !indexPath ) return nil;
+    UITableViewCell *cell = [self.bear cellForRowAtIndexPath:indexPath];
+    previewingContext.sourceRect = cell.frame;
+
+    CRClassSchedule *schedule = [CRTestFunction scheduleFromNSArray:self.testData[indexPath.section][indexPath.row]];
+    CRClassAddViewController *CRClassAddVC = [CRClassAddViewController shareFromClassSchedule:schedule];
     CRClassAddVC.isPreview = YES;
-    CRClassAddVC.classSchedule = newClassSchedule;
     return CRClassAddVC;
 }
 
@@ -117,32 +123,33 @@
     self.titleLabel = [UILabel new];
     HuskyButton *backButton = [HuskyButton new];
     [self.view addAutolayoutSubviews:@[ self.park ]];
-//    [self.park addAutolayoutSubviews:@[ backButton, self.titleLabel ]];
+    [self.park addAutolayoutSubviews:@[ self.titleLabel ]];
     [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:self.park to:self.view type:EdgeTopLeftRightZero]];
-    [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearFixed:self.park type:SpactecledBearFixedHeight constant:0 + STATUS_BAR_HEIGHT]];
+    self.parkLayoutGuide = [NSLayoutConstraint constraintWithItem:self.park
+                                                        attribute:NSLayoutAttributeHeight
+                                                        relatedBy:NSLayoutRelationEqual
+                                                           toItem:nil
+                                                        attribute:NSLayoutAttributeNotAnAttribute
+                                                       multiplier:1.0
+                                                         constant:STATUS_BAR_HEIGHT];
+    [self.view addConstraint:self.parkLayoutGuide];
     [self.view addConstraints:cons];
     [cons removeAllObjects];
-    [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:self.titleLabel to:self.park type:EdgeBottomZero]];
+    [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:self.titleLabel to:self.park type:EdgeBottomZero
+                                                            constant:STATUS_BAR_HEIGHT]];
     [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:self.titleLabel to:self.park type:EdgeLeftRightZero constant:16]];
-    [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:self.titleLabel to:self.park type:EdgeTopZero constant:STATUS_BAR_HEIGHT]];
-    [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:backButton to:self.park type:EdgeBottomLeftZero]];
-    [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearFixed:backButton type:SpactecledBearFixedEqual constant:56]];
-//    [self.park addConstraints:cons];
+    [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearFixed:self.titleLabel type:SpactecledBearFixedHeight constant:56]];
+    [self.park addConstraints:cons];
+    [cons removeAllObjects];
     
-    self.park.backgroundColor = [UIColor CRColorType:CRColorTypeGoogleMapBlue];
+    self.park.backgroundColor = [UIColor CRColorType:CRColorTypeGoogleYellow];
     [self.park makeShadowWithSize:CGSizeMake(0, 1) opacity:0.27 radius:1.7];
     
-    self.titleLabel.textAlignment = NSTextAlignmentLeft;
+    self.titleLabel.alpha = 0;
+    self.titleLabel.textAlignment = NSTextAlignmentCenter;
     self.titleLabel.textColor = [UIColor whiteColor];
     self.titleLabel.font = [CRSettings appFontOfSize:19];
     self.titleLabel.text = self.title;
-    
-    backButton.alpha = 0;
-    backButton.layer.cornerRadius = 56 / 2.0f;
-    backButton.titleLabel.font = [UIFont MaterialDesignIconsWithSize:25];
-    [backButton setTitleColor:[UIColor colorWithWhite:33 / 255.0 alpha:1] forState:UIControlStateNormal];
-    [backButton setTitle:[UIFont mdiArrowLeft] forState:UIControlStateNormal];
-    [backButton addTarget:self action:@selector(CRAccountsViewController) forControlEvents:UIControlEventTouchUpInside];
 }
 
 - (void)doActionButton{
@@ -162,7 +169,7 @@
     self.actionButton.layer.cornerRadius = self.actionButtonAccount.layer.cornerRadius = 56 / 2.0f;
     self.actionButton.titleLabel.font = [UIFont MaterialDesignIcons];
     self.actionButtonAccount.titleLabel.font = [CRSettings appFontOfSize:27];
-    self.actionButton.backgroundColor = [UIColor CRColorType:CRColorTypeGoogleMapBlue];
+    self.actionButton.backgroundColor = [UIColor CRColorType:CRColorTypeGoogleTomato];
     self.actionButtonAccount.backgroundColor = [UIColor CRColorType:CRColorTypeGoogleYellow];
     [self.actionButton makeShadowWithSize:CGSizeMake(0.0f, 6.0f) opacity:0.3f radius:7.0f];
     [self.actionButtonAccount makeShadowWithSize:CGSizeMake(0.0f, 6.0f) opacity:0.3f radius:7.0f];
@@ -170,7 +177,7 @@
     [self.actionButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     [self.actionButtonAccount setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     [self.actionButton setTitle:[UIFont mdiPlus] forState:UIControlStateNormal];
-    [self.actionButtonAccount setTitle:@"D" forState:UIControlStateNormal];
+    [self.actionButtonAccount setTitle:@"C" forState:UIControlStateNormal];
     [self.actionButton addTarget:self action:@selector(CRClassAddViewController) forControlEvents:UIControlEventTouchUpInside];
 }
 
@@ -248,7 +255,9 @@
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section{
-    return 2;
+    NSUInteger offset = 0;
+    if( section == 0 ) offset = 1;
+    return [self.testData[section] count] == 0 ? 1 : [self.testData[section] count] + offset;
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section{
@@ -256,7 +265,11 @@
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath{
-    return 56.0f;
+    
+    if( indexPath.row == 0 || indexPath.row + 1 == [self tableView:tableView numberOfRowsInSection:indexPath.section] )
+        return 66.0f + 20.0f;
+    
+    return 56.0f + 20.0f;
 }
 
 - (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section{
@@ -264,27 +277,43 @@
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath{
-    static NSString *CRCLASS_CELL_ID = @"CRCLASS_CELL_ID";
     
     CRClassTableViewCell *CRCell;
-    CRCell = [tableView dequeueReusableCellWithIdentifier:CRCLASS_CELL_ID];
+    if( [self.testData[indexPath.section] count] == 0 ){
+        CRCell = [tableView dequeueReusableCellWithIdentifier:CRClassCellNoClassID];
+        if( !CRCell ){
+            CRCell = [[CRClassTableViewCell alloc] initFromNoClass];
+        }
+        
+//        [CRCell makeTopWhiteStroke];
+//        [CRCell makeBottomWhiteSpace];
+        
+        return CRCell;
+    }
+    
+    if( indexPath.section == 0 && indexPath.row == 6 ){
+        CRCell = [tableView dequeueReusableCellWithIdentifier:CRClassCellMomentID];
+        if( !CRCell ){
+            CRCell = [[CRClassTableViewCell alloc] initFromMomentWithColor:[UIColor randomColor]];
+        }
+        return CRCell;
+    }
+    
+    CRClassSchedule *schedule = [CRTestFunction scheduleFromNSArray:self.testData[indexPath.section][indexPath.row]];
+    
+    CRCell = [tableView dequeueReusableCellWithIdentifier:CRClassCellDefaultID];
     if( !CRCell ){
-        CRCell = [[CRClassTableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CRCLASS_CELL_ID];
+        CRCell = [[CRClassTableViewCell alloc] initFromDefault];
     }
     
-    CRCell.selectionStyle = UITableViewCellSelectionStyleNone;
+    CRCell.wrapper.backgroundColor = [CRSettings CRAppColorTypes][schedule.colorType];
+    CRCell.startTime.text = schedule.timeStart;
+    CRCell.className.text = schedule.classname;
+    CRCell.location.text = schedule.location;
     
-    CRCell.wrapper.backgroundColor = [UIColor CRColorType:CRColorTypeGoogleMapBlue];
-    CRCell.startTime.text = @"18:00";
-    CRCell.className.textColor = [UIColor whiteColor];
-    CRCell.className.text = @"craig";
-    
-    if( indexPath.section != 1 ){
-        CRCell.wrapper.backgroundColor = [UIColor clearColor];
-        CRCell.className.text = @"You dont have a class today";
-        CRCell.className.textColor = [UIColor colorWithWhite:157 / 255.0 alpha:1];
-        CRCell.startTime.text = @"";
-    }
+    if( indexPath.row == 0 ) [CRCell makeTopWhiteSpace]; else [CRCell makeTopWhiteStroke];
+    if( indexPath.row + 1 == [self tableView:tableView numberOfRowsInSection:indexPath.section] ) [CRCell makeBottomWhiteSpace];
+    else [CRCell makeBottomWhiteStroke];
     
     return CRCell;
 }
@@ -292,14 +321,26 @@
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView{
     CGPoint scrollPoint = scrollView.contentOffset;
     
+    if( scrollPoint.y < -20 ){
+        CGFloat offset = fabs(scrollPoint.y);
+        CGFloat alpha = (offset - 56) / 56.0;
+        if( alpha <= 1 && alpha >= 0 ) self.titleLabel.alpha = alpha;
+        if( alpha >  1 && self.titleLabel.alpha != 1 ) self.titleLabel.alpha = 1;
+        self.parkLayoutGuide.constant = offset;
+    }else{
+        self.titleLabel.alpha = 0;
+        self.parkLayoutGuide.constant = STATUS_BAR_HEIGHT;
+    }
+    
     [self.shouldRelayoutGuide enumerateObjectsUsingBlock:^(id obj, NSUInteger i, BOOL *sS){
         NSLayoutConstraint *con = (NSLayoutConstraint *)obj;
         NSUInteger index = [con.identifier integerValue];
         UIView *view = self.headerViews[index];
         CGFloat fuck = view.frame.origin.y - scrollView.frame.size.height - scrollPoint.y;
-        con.constant = fuck / 4;
-        [self.view layoutIfNeeded];
+        con.constant = fuck / 3;
     }];
+    
+    [self.view layoutIfNeeded];
 }
 
 - (void)tableView:(UITableView *)tableView willDisplayHeaderView:(UIView *)view forSection:(NSInteger)section{
@@ -312,23 +353,17 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath{
     NSLog(@"selected %@", indexPath);
+//    CRClassTableViewCell *cell = [tableView cellForRowAtIndexPath:indexPath];
+//    self.InitialFrame = [cell convertRect:cell.wrapper.frame toView:self.view];
+//    CRClassSchedule *schedule = [CRTestFunction scheduleFromNSArray:self.testData[indexPath.section][indexPath.row]];
+//    CRClassAddViewController *CRClassAddVC = [CRClassAddViewController shareFromClassSchedule:schedule];
+//    CRClassAddVC.transitioningDelegate = self.transitionAnimationObject;
+//    [self presentViewController:CRClassAddVC animated:YES completion:nil];
 }
 
 - (void)CRClassAddViewController{
-    CRClassSchedule *createClassSchedule = [[CRClassSchedule alloc] initFromDictionary:@{
-                                                                                      ClassScheduleUser: @"user",
-                                                                                      ClassScheduleWeekday: [CRSettings weekday],
-                                                                                      ClassScheduleTimeStart: @"7: 00",
-                                                                                      ClassScheduleLocation: @"Edit location",
-                                                                                      ClassScheduleClassname: @"Edit class name",
-                                                                                      ClassScheduleTeacher: @"Edit teacher",
-                                                                                      ClassScheduleTimeLong: @"40 mins",
-                                                                                      ClassScheduleColorType: @"color",
-                                                                                      ClassScheduleUserInfo: @"Add note",
-                                                                                      ClassScheduleType: @"nullable type"
-                                                                                      }];
-    
-    CRClassAddViewController *CRClassAddVC = [[CRClassAddViewController alloc] initFromClassSchedule:createClassSchedule];
+    CRClassSchedule *schedule = [CRClassSchedule ClassCreateTempleSchedule];
+    CRClassAddViewController *CRClassAddVC = [CRClassAddViewController shareFromClassSchedule:schedule];
     
     CRClassAddVC.isPreview = NO;
     [self presentViewController:CRClassAddVC animated:YES completion:nil];
@@ -336,7 +371,7 @@
 
 - (void)CRAccountsViewController{
     CRAccountsViewController *accounts = [CRAccountsViewController new];
-    accounts.transitioningDelegate = self.transitionAnimationDelegate;
+    accounts.transitioningDelegate = self.transitionAnimationDafult;
     [self presentViewController:accounts animated:YES completion:nil];
 }
 

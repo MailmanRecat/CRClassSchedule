@@ -7,6 +7,7 @@
 //
 
 #import "CRClassSchedule.h"
+#import "CRSettings.h"
 
 @implementation CRClassSchedule
 
@@ -25,6 +26,22 @@
         self.type = dictionary[ClassScheduleType];
     }
     return self;
+}
+
++ (instancetype)ClassCreateTempleSchedule{
+    return [[CRClassSchedule alloc] initFromDictionary:@{
+                                                         ClassScheduleTag: @1,
+                                                         ClassScheduleUser: @"user",
+                                                         ClassScheduleWeekday: [CRSettings weekday],
+                                                         ClassScheduleTimeStart: @"07: 00",
+                                                         ClassScheduleLocation: @"Edit location",
+                                                         ClassScheduleClassname: @"Edit class name",
+                                                         ClassScheduleTeacher: @"Edit teacher",
+                                                         ClassScheduleTimeLong: @"40 mins",
+                                                         ClassScheduleColorType: @"Default",
+                                                         ClassScheduleUserInfo: @"Add note",
+                                                         ClassScheduleType: @"nullable type"
+                                                         }];
 }
 
 @end

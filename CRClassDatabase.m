@@ -28,6 +28,7 @@ static NSString *const CRClassAccountDataBaseKEY = @"CRCLASSACCOUNTDATABASEKEY";
 
 + (BOOL)insertCRClassSchedule:(CRClassSchedule *)schedule{
     NSArray *row = @[
+                     schedule.user,
                      schedule.weekday,
                      schedule.timeStart,
                      schedule.location,

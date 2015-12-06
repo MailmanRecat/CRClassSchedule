@@ -8,6 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
+static NSString *const ClassScheduleTag = @"ClassScheduleTag";
 static NSString *const ClassScheduleUser = @"ClassScheduleUser";
 static NSString *const ClassScheduleWeekday = @"ClassScheduleWeekday";
 static NSString *const ClassScheduleTimeStart = @"ClassScheduleTimeStart";
@@ -21,6 +22,7 @@ static NSString *const ClassScheduleType = @"ClassScheduleType";
 
 @interface CRClassSchedule : NSObject
 
+@property( nonatomic, strong ) NSNumber *scheduleTag;
 @property( nonatomic, strong ) NSString *user;
 @property( nonatomic, strong ) NSString *weekday;
 @property( nonatomic, strong ) NSString *timeStart;
@@ -33,5 +35,6 @@ static NSString *const ClassScheduleType = @"ClassScheduleType";
 @property( nonatomic, strong ) NSString *type;
 
 - (instancetype)initFromDictionary:(NSDictionary *)dictionary;
++ (instancetype)ClassCreateTempleSchedule;
 
 @end

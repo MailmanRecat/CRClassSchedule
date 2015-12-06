@@ -27,7 +27,7 @@
 #import "CRTextFieldViewController.h"
 #import "MOREColorPickerView.h"
 
-@interface CRClassAddViewController()<UITextFieldDelegate, CRColorPickerHandler, CRTextFieldVCHandler, CRTimeOptionsVCHandler, CRTimeOptionVCHandler>
+@interface CRClassAddViewController()<UITextFieldDelegate, UITextViewDelegate, UIScrollViewDelegate, CRColorPickerHandler, CRTextFieldVCHandler, CRTimeOptionsVCHandler, CRTimeOptionVCHandler>
 
 @property( nonatomic, strong ) UIView *park;
 @property( nonatomic, strong ) HuskyButton *dismissButton;
@@ -51,6 +51,7 @@
 @property( nonatomic, strong ) MORETransitionAnimationDelegate *transitionAnimationDelegate;
 
 @property( nonatomic, strong ) UIColor *testColor;
+@property( nonatomic, assign ) BOOL shouldRender;
 
 @end
 
@@ -64,6 +65,38 @@
     return self;
 }
 
++ (instancetype)shareFromClassSchedule:(CRClassSchedule *)classSchedule{
+    static CRClassAddViewController *instanceVC= nil;
+    if( instanceVC ){
+        instanceVC.classSchedule = classSchedule;
+        instanceVC.shouldRender = YES;
+        return instanceVC;
+    }
+    
+    static dispatch_once_t instanceVCMaker;
+    dispatch_once(&instanceVCMaker, ^{
+        instanceVC = [[CRClassAddViewController alloc] initFromClassSchedule:classSchedule];
+        instanceVC.shouldRender = YES;
+    });
+    return instanceVC;
+}
+
+-(NSArray<id<UIPreviewActionItem>> *)previewActionItems {
+    
+    UIPreviewAction *deleteAction = [UIPreviewAction actionWithTitle:@"Delete" style:UIPreviewActionStyleDestructive handler:^(UIPreviewAction * _Nonnull action, UIViewController * _Nonnull previewViewController) {
+        
+        NSLog(@"action handler");
+        
+    }];
+    
+    UIPreviewAction *editAction = [UIPreviewAction actionWithTitle:@"Edit Class" style:UIPreviewActionStyleDefault handler:^( UIPreviewAction * _Nonnull action, UIViewController * _Nonnull previewViewController ){
+        
+        NSLog(@"edit");
+    }];
+    
+    return @[ editAction, deleteAction ];
+}
+
 - (void)viewDidLoad{
     [super viewDidLoad];
     self.view.backgroundColor = [UIColor whiteColor];
@@ -71,13 +104,55 @@
     self.sun = [[GGAnimationSunrise alloc] initWithType:GGAnimationSunriseTypeConcurrent blockOnCompletion:^(GGAnimationSunriseType type){
         self.park.backgroundColor = self.testColor;
     }];
+    self.sun.duration = 0.57f;
     
     [self doBear];
     [self doPark];
     [self doBottomBear];
     
     [self addNotificationObserver];
-    if( self.isPreview ) self.dismissButton.alpha = 0;
+}
+
+- (void)viewWillAppear:(BOOL)animated{
+    if( self.isPreview ){
+        self.isPreview = NO;
+        self.dismissButton.hidden = YES;
+        [self.teacher makeBorder:NO];
+        [self.weekday makeBorder:NO];
+        [self.timeLong makeBorder:NO];
+        [self.colorType makeBorder:NO];
+        [self.userInfo makeBorder:NO];
+    }else{
+        [self showDismissButton];
+        [self.teacher makeBorder:YES];
+        [self.weekday makeBorder:YES];
+        [self.timeLong makeBorder:YES];
+        [self.colorType makeBorder:YES];
+        [self.userInfo makeBorder:YES];
+    }
+    
+    if( self.isBeingPresented ){
+        self.park.backgroundColor = [CRSettings CRAppColorTypes][[self.classSchedule.colorType lowercaseString]];
+        [self.saveButton setTitleColor:[CRSettings CRAppColorTypes][[self.classSchedule.colorType lowercaseString]] forState:UIControlStateNormal];
+        
+        self.timeStart.strong.text = self.classSchedule.timeStart;
+        
+        self.location.strong.text = self.classSchedule.location;
+        
+        self.classname.text = self.classSchedule.classname;
+        
+        self.teacher.placeholder = self.classSchedule.teacher;
+        self.teacher.tintColor = [UIColor CRColorType:CRColorTypeGoogleMapBlue];
+        
+        self.weekday.textLabel.text = self.classSchedule.weekday;
+        
+        self.timeLong.textLabel.text = self.classSchedule.timeLong;
+        
+        self.colorType.icon.textColor = self.park.backgroundColor;
+        self.colorType.textLabel.text = self.classSchedule.colorType;
+        
+        self.userInfo.textView.text = self.classSchedule.userInfo;
+    }
 }
 
 - (void)showDismissButton{
@@ -87,40 +162,51 @@
 - (void)addNotificationObserver{
     NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
     
-    [center addObserver:self
-               selector:@selector(willKeyBoardShow:)
-                   name:UIKeyboardWillShowNotification
-                 object:nil];
-    [center addObserver:self
-               selector:@selector(willKeyBoardHide:)
-                   name:UIKeyboardWillHideNotification
-                 object:nil];
+//    [center addObserver:self
+//               selector:@selector(willKeyBoardShow:)
+//                   name:UIKeyboardWillShowNotification
+//                 object:nil];
+//    [center addObserver:self
+//               selector:@selector(willKeyBoardHide:)
+//                   name:UIKeyboardWillHideNotification
+//                 object:nil];
     [center addObserver:self
                selector:@selector(willKeyBoardChangeFrame:)
                    name:UIKeyboardWillChangeFrameNotification
                  object:nil];
 }
 
-- (void)CRColorPickerDidDismissHandler:(UIColor *)color{
+- (void)CRColorPickerDidDismissHandler:(UIColor *)color name:(NSString *)name{
     self.testColor = color;
+    self.colorType.icon.textColor = color;
+    [self.saveButton setTitleColor:color forState:UIControlStateNormal];
+    self.colorType.textLabel.text = name;
+    self.classSchedule.colorType = name;
     [self.sun sunriseAtLand:self.park
                    location:CGPointMake(self.view.frame.size.width / 2.0f, (STATUS_BAR_HEIGHT + 56 + 72) / 2.0f)
                  lightColor:color];
 }
 
 - (void)CRTextFieldVCDidDismiss:(NSString *)textFieldString{
+    if( [textFieldString isEqualToString:@""] ) return;
     self.classname.text = textFieldString;
+    self.classSchedule.classname = textFieldString;
 }
 
 - (void)CRTimeOptionVCDidDismissWithType:(CRTimeOptionType)type option:(NSString *)option{
-    if( type == CRTimeOptionTypeClassmins )
+    if( type == CRTimeOptionTypeClassmins ){
         self.timeLong.textLabel.text = option;
-    else if( type == CRTimeOptionTypeWeekday )
+        self.classSchedule.timeLong = option;
+    }
+    else if( type == CRTimeOptionTypeWeekday ){
         self.weekday.textLabel.text = option;
+        self.classSchedule.weekday = option;
+    }
 }
 
 - (void)CRTimeOptionsVCDidDismissWithOption:(NSString *)option{
     self.timeStart.strong.text = option;
+    self.classSchedule.timeStart = option;
 }
 
 - (void)willKeyBoardShow:(NSNotification *)keyboardInfo{
@@ -146,14 +232,23 @@
                         options:options
                      animations:^{
                          [self.view layoutIfNeeded];
-                     }completion:nil];
+                     }completion:^( BOOL isFinished ){
+                         if( [self.userInfo.textView isFirstResponder] ){
+                             [self.saveButton setTitle:@"Done" forState:UIControlStateNormal];
+                             [UIView animateWithDuration:duration
+                                              animations:^{
+                                                  self.bear.contentOffset = CGPointMake(0, self.userInfo.frame.origin.y - STATUS_BAR_HEIGHT - 56 - 72);
+                                              }];
+                         }
+                     }];
 }
 
 - (void)willKeyBoardChangeFrame:(NSNotification *)keyboardInfo{
-//    NSLog(@"will change");
     NSDictionary *info = [keyboardInfo userInfo];
-    CGRect bounds = [[info objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue];
-//    NSLog(@"%@", info);
+    CGFloat constant = self.view.frame.size.height - [[info objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue].origin.y;
+    CGFloat duration = [info[UIKeyboardAnimationDurationUserInfoKey] floatValue];
+    UIViewAnimationOptions option = [info[UIKeyboardAnimationCurveUserInfoKey] integerValue];
+    [self layoutSaveButtonDuration:duration options:option constant:constant];
 }
 
 - (void)doPark{
@@ -179,38 +274,37 @@
     [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:self.timeStart to:self.park type:EdgeTopZero
                                                             constant:STATUS_BAR_HEIGHT + 8]];
     [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:self.timeStart to:self.park type:EdgeLeftRightZero
-                                                            constant:56]];
+                                                            constant:56 + 8]];
     [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:self.location to:self.park type:EdgeTopZero
                                                             constant:STATUS_BAR_HEIGHT + 8 + 8 + CRLabelHeight]];
     [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:self.location to:self.park type:EdgeLeftRightZero
-                                                            constant:56]];
+                                                            constant:56 + 8]];
     [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearFixed:self.timeStart type:SpactecledBearFixedHeight constant:CRLabelHeight]];
     [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearFixed:self.location type:SpactecledBearFixedHeight constant:CRLabelHeight]];
     [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:self.classname to:self.park type:EdgeBottomZero]];
-    [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:self.classname to:self.park type:EdgeLeftRightZero constant:56]];
+    [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:self.classname to:self.park type:EdgeLeftRightZero constant:56 + 8]];
     [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearFixed:self.classname type:SpactecledBearFixedHeight
                                                              constant:(56 + 72) - 8 - CRLabelHeight - 8 - CRLabelHeight]];
     [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:classnameButton to:self.park type:EdgeBottomZero]];
-    [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:classnameButton to:self.park type:EdgeLeftRightZero constant:56]];
+    [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:classnameButton to:self.park type:EdgeLeftZero constant:56 + 8]];
+    [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:classnameButton to:self.park type:EdgeRightZero constant:8]];
     [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearFixed:classnameButton type:SpactecledBearFixedHeight
                                                              constant:(56 + 72) - 8 - CRLabelHeight - 8 - CRLabelHeight]];
     [self.park addConstraints:cons];
     [cons removeAllObjects];
     
-    self.park.backgroundColor = [UIColor CRColorType:CRColorTypeGoogleMapBlue];
-    
     self.timeStart.light.text = @"start:";
-    self.timeStart.strong.text = self.classSchedule.timeStart;
     self.location.light.text = @"location:";
-    self.location.strong.text = self.classSchedule.location;
-    self.classname.text = self.classSchedule.classname;
     self.classname.font = [CRSettings appFontOfSize:21];
-    self.classname.textColor = [UIColor colorWithWhite:1 alpha:0.7];
+    self.classname.textColor = [UIColor colorWithWhite:1 alpha:1];
+    self.classname.numberOfLines = 1;
+    self.classname.adjustsFontSizeToFitWidth = YES;
     
     classnameButton.backgroundColor = [UIColor clearColor];
     [classnameButton addTarget:self action:@selector(CRTextFieldViewController) forControlEvents:UIControlEventTouchUpInside];
     
     [self.timeStart.button addTarget:self action:@selector(CRTimeOptionsViewController) forControlEvents:UIControlEventTouchUpInside];
+    [self.location.button addTarget:self action:@selector(CRTextFieldViewController) forControlEvents:UIControlEventTouchUpInside];
     
     backButton.layer.cornerRadius = 56.0f / 2.0f;
     backButton.titleLabel.font = [UIFont MaterialDesignIcons];
@@ -244,10 +338,13 @@
     [self.bottomBear addConstraints:cons];
     [cons removeAllObjects];
     
+    self.bottomBear.backgroundColor = [UIColor whiteColor];
+    [self.bottomBear makeShadowWithSize:CGSizeMake(0, -1) opacity:0.17 radius:1.7];
+    
     self.saveButton.backgroundColor = [UIColor clearColor];
-    self.saveButton.titleLabel.font = [CRSettings appFontOfSize:17];
+    self.saveButton.titleLabel.font = [CRSettings appFontOfSize:17 weight:UIFontWeightMedium];
     [self.saveButton setTitle:@"Save" forState:UIControlStateNormal];
-    [self.saveButton setTitleColor:[UIColor CRColorType:CRColorTypeGoogleMapBlue] forState:UIControlStateNormal];
+    [self.saveButton setTitleColor:[CRSettings CRAppColorTypes][[self.classSchedule.colorType lowercaseString]] forState:UIControlStateNormal];
     [self.saveButton addTarget:self action:@selector(CRSaveClass) forControlEvents:UIControlEventTouchUpInside];
 }
 
@@ -284,24 +381,39 @@
     
     self.teacher.delegate = self;
     self.teacher.icon.text = [UIFont mdiAccount];
-    self.teacher.placeholder = self.classSchedule.teacher;
-    self.teacher.tintColor = [UIColor CRColorType:CRColorTypeGoogleMapBlue];
     
     self.weekday.icon.text = [UIFont mdiCalendar];
-    self.weekday.textLabel.text = self.classSchedule.weekday;
     [self.weekday addTarget:self action:@selector(CRWeekdayViewController) forControlEvents:UIControlEventTouchUpInside];
     
     self.timeLong.icon.text = [UIFont mdiClock];
-    self.timeLong.textLabel.text = self.classSchedule.timeLong;
     [self.timeLong addTarget:self action:@selector(CRTimeOptionViewController) forControlEvents:UIControlEventTouchUpInside];
     
     self.colorType.icon.text = [UIFont mdiCheckboxBlankCircle];
-    self.colorType.icon.textColor = [UIColor CRColorType:CRColorTypeGoogleMapBlue];
-    self.colorType.textLabel.text = self.classSchedule.colorType;
     [self.colorType addTarget:self action:@selector(CRColorPickerViewController) forControlEvents:UIControlEventTouchUpInside];
     
     self.userInfo.icon.text = [UIFont mdiPencil];
-    self.userInfo.textView.text = self.classSchedule.userInfo;
+    self.userInfo.textView.delegate = self;
+    self.userInfo.textView.font = [CRSettings appFontOfSize:17];
+    self.userInfo.textView.textColor = [UIColor colorWithWhite:117 / 255.0 alpha:1];
+}
+
+- (void)textViewDidBeginEditing:(UITextView *)textView{
+    if( [textView.text isEqualToString:@"Add note"] ){
+        textView.textColor = [UIColor blackColor];
+        textView.text = @"";
+    }
+}
+
+- (void)textViewDidEndEditing:(UITextField *)textField{
+    [self.saveButton setTitle:@"Save" forState:UIControlStateNormal];
+    NSLog(@"end");
+    NSString *text = [textField.text stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+    NSLog(@"--%@", text);
+    
+    if( [text isEqualToString:@""] ){
+        textField.text = @"Add note";
+        textField.textColor = [UIColor colorWithWhite:117 / 255.0 alpha:1];
+    }
 }
 
 - (BOOL)textFieldShouldReturn:(UITextField *)textField{
@@ -310,10 +422,8 @@
 }
 
 - (void)CRTimeOptionsViewController{
-    CRTimeOptionsViewController *timeOptions = [CRTimeOptionsViewController new];
-    
-    
-    
+    CRTimeOptionsViewController *timeOptions = [CRTimeOptionsViewController shareTimeOptions];
+    timeOptions.curTimeString = self.classSchedule.timeStart;
     timeOptions.handler = self;
     timeOptions.transitioningDelegate = self.transitionAnimationDelegate;
     [self presentViewController:timeOptions animated:YES completion:nil];
@@ -389,23 +499,31 @@
 }
 
 - (void)CRColorPickerViewController{
-    MOREColorPickerView *colorPicker = [MOREColorPickerView new];
+    MOREColorPickerView *colorPicker = [MOREColorPickerView shareColorPicker];
+    colorPicker.curString = self.classSchedule.colorType;
     colorPicker.handler = self;
     colorPicker.transitioningDelegate = self.transitionAnimationDelegate;
     [self presentViewController:colorPicker animated:YES completion:nil];
 }
 
 - (void)CRSaveClass{
-    NSLog(@"%@", self.classSchedule.user);
-    NSLog(@"%@", self.classSchedule.weekday);
-    NSLog(@"%@", self.classSchedule.timeStart);
-    NSLog(@"%@", self.classSchedule.location);
-    NSLog(@"%@", self.classSchedule.classname);
-    NSLog(@"%@", self.classSchedule.teacher);
-    NSLog(@"%@", self.classSchedule.timeLong);
-    NSLog(@"%@", self.classSchedule.colorType);
-    NSLog(@"%@", self.classSchedule.userInfo);
-    NSLog(@"%@", self.classSchedule.type);
+    
+    if( [self.userInfo.textView isFirstResponder] ){
+        [self.userInfo.textView resignFirstResponder];
+    }
+    
+//    self.classSchedule.userInfo = self.userInfo.textView.text;
+//    self.classSchedule.teacher = self.teacher.text;
+//    NSLog(@"%@", self.classSchedule.user);
+//    NSLog(@"%@", self.classSchedule.weekday);
+//    NSLog(@"%@", self.classSchedule.timeStart);
+//    NSLog(@"%@", self.classSchedule.location);
+//    NSLog(@"%@", self.classSchedule.classname);
+//    NSLog(@"%@", self.classSchedule.teacher);
+//    NSLog(@"%@", self.classSchedule.timeLong);
+//    NSLog(@"%@", self.classSchedule.colorType);
+//    NSLog(@"%@", self.classSchedule.userInfo);
+//    NSLog(@"%@", self.classSchedule.type);
 }
 
 - (void)dismissSelf{

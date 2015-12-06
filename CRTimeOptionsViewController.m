@@ -38,23 +38,36 @@
 
 @implementation CRTimeOptionsViewController
 
++ (instancetype)shareTimeOptions{
+    static CRTimeOptionsViewController *timeOptions = nil;
+    if( timeOptions ) return timeOptions;
+    
+    static dispatch_once_t t_tiemOptionsMaker;
+    dispatch_once(&t_tiemOptionsMaker, ^{
+        timeOptions = [CRTimeOptionsViewController new];
+    });
+    
+    return timeOptions;
+}
+
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.view.backgroundColor = [UIColor whiteColor];
     
-    self.timeString = @"7:00";
-    self.hour = 7;
-    self.min = 00;
     [self doBear];
     [self doPark];
     [self doButton];
 }
 
 - (void)viewWillAppear:(BOOL)animated{
-    [self.houTable selectRowAtIndexPath:[NSIndexPath indexPathForRow:self.selectedHour ? self.selectedHour : 7 inSection:0]
+    self.timeString = self.curTimeString;
+    self.option.text = self.curTimeString;
+    self.hour = [[self.curTimeString substringWithRange:NSMakeRange(0, 2)] integerValue];
+    self.min = [[self.curTimeString substringWithRange:NSMakeRange(3, 2)] integerValue];
+    [self.houTable selectRowAtIndexPath:[NSIndexPath indexPathForRow:self.hour inSection:0]
                                animated:NO
                          scrollPosition:UITableViewScrollPositionTop];
-    [self.minTable selectRowAtIndexPath:[NSIndexPath indexPathForRow:self.selectedMins ? self.selectedMins : 0 inSection:0]
+    [self.minTable selectRowAtIndexPath:[NSIndexPath indexPathForRow:self.min / 5 inSection:0]
                                animated:NO
                          scrollPosition:UITableViewScrollPositionTop];
 }
@@ -131,7 +144,6 @@
     self.optionName.font = [CRSettings appFontOfSize:25];
     self.optionName.textColor = [UIColor whiteColor];
     
-    self.option.text = [NSString stringWithFormat:@"%ld:0%ld", self.hour, self.min];
     self.option.font = [CRSettings appFontOfSize:29];
     self.option.textColor = [UIColor whiteColor];
     
@@ -251,14 +263,12 @@
     CRTimeOptionItem *cell = [tableView dequeueReusableCellWithIdentifier:CELL_ID];
     if( !cell ){
         cell = [[CRTimeOptionItem alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CELL_ID];
+        cell.timeLabel.font = [CRSettings appFontOfSize:19];
+        cell.timeLabel.textColor = [UIColor colorWithWhite:127 / 255.0  alpha:1];
     }
-    
-    cell.timeLabel.font = [CRSettings appFontOfSize:19];
-    cell.timeLabel.textColor = [UIColor colorWithWhite:127 / 255.0  alpha:1];
     
     NSString *text;
     if( tableView.tag == 1024 ){
-        if( indexPath.row == 7 ) cell.selected = YES;
         
         text = indexPath.row < 10 ? [NSString stringWithFormat:@"0%ld o'clock", indexPath.row] :
         [NSString stringWithFormat:@"%ld o'clock", indexPath.row];
@@ -270,8 +280,6 @@
         
         cell.timeLabel.text = text;
     }
-    
-    cell.highlighted = YES;
     
     return cell;
 }
@@ -286,8 +294,10 @@
         self.min = indexPath.row * 5;
     }
 
-    self.option.text = self.min < 10 ? [NSString stringWithFormat:@"%ld:0%ld", self.hour, self.min] :
-    [NSString stringWithFormat:@"%ld:%ld", self.hour, self.min];
+    NSString *optionMin, *optionHou;
+    optionHou = self.hour < 10 ? [NSString stringWithFormat:@"0%ld", self.hour] : [NSString stringWithFormat:@"%ld", self.hour];
+    optionMin = self.min  < 10 ? [NSString stringWithFormat:@"0%ld", self.min]  : [NSString stringWithFormat:@"%ld", self.min];
+    self.option.text = [NSString stringWithFormat:@"%@:%@", optionHou, optionMin];
     
     self.timeString = self.option.text;
     
@@ -299,6 +309,8 @@
     [self dismissViewControllerAnimated:YES completion:^{
         if( self.handler && [self.handler respondsToSelector:@selector(CRTimeOptionsVCDidDismissWithOption:)] )
             [self.handler CRTimeOptionsVCDidDismissWithOption:self.timeString];
+        
+        [self swipeToHouTable];
     }];
 }
 

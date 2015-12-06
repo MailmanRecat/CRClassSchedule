@@ -10,12 +10,16 @@
 
 @protocol CRColorPickerHandler <NSObject>
 
-- (void)CRColorPickerDidDismissHandler:(UIColor *)color;
+- (void)CRColorPickerDidDismissHandler:(UIColor *)color name:(NSString *)name;
 
 @end
 
 @interface MOREColorPickerView : UIViewController
 
 @property( nonatomic, weak ) id<CRColorPickerHandler> handler;
+@property( nonatomic, strong ) NSString *curString;
+
++ (instancetype)shareColorPicker;
++ (NSDictionary *)CRColorTypes;
 
 @end

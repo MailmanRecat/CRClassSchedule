@@ -57,6 +57,8 @@
         sele.text = [UIFont mdiCheck];
         sele.alpha = 0;
         
+        icon.userInteractionEnabled = name.userInteractionEnabled = sele.userInteractionEnabled = NO;
+        
         self.icon = icon;
         self.accountName = name;
         self.sele = sele;

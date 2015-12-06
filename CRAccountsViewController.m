@@ -20,6 +20,8 @@
 #import "CRAccountAddViewController.h"
 #import "CRInfoViewController.h"
 
+#import "CRClassAddViewController.h"
+
 @interface CRAccountsViewController()<UIScrollViewDelegate, UITableViewDataSource, UITableViewDelegate>
 
 @property( nonatomic, strong ) NSMutableArray *cons;
@@ -160,22 +162,19 @@
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath{
-    if( indexPath.row == 4 ){
+    
+    NSLog(@"%ld", indexPath.row);
+    if( indexPath.row == 4 )
         [self CRInfoViewController];
-        return;
-    }
-    
-    if( indexPath.row == 3 ){
+    else if( indexPath.row == 3 )
         [self CRAccountAddViewController];
-        return;
+    else if( indexPath.row != self.selectedRow ){
+        CRAccountsTableViewCell *cell = [tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:self.selectedRow inSection:0]];
+        [cell unCheck];
+        cell = [tableView cellForRowAtIndexPath:indexPath];
+        [cell check];
+        self.selectedRow = indexPath.row;
     }
-    
-    if( indexPath.row == self.selectedRow ) return;
-    CRAccountsTableViewCell *cell = [tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:self.selectedRow inSection:0]];
-    [cell unCheck];
-    cell = [tableView cellForRowAtIndexPath:indexPath];
-    [cell check];
-    self.selectedRow = indexPath.row;
 }
 
 - (void)CRAccountAddViewController{

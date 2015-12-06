@@ -37,6 +37,7 @@
     
 //    [CRTestFunction runCRTestFunc];
 //    [CRTestFunction insertAAccount];
+//    [CRTestFunction testClass];
     
     [self doShortItems];
     return YES;

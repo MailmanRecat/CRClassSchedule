@@ -13,4 +13,6 @@
 @property( nonatomic, strong ) UILabel *icon;
 @property( nonatomic, strong ) UITextView *textView;
 
+- (void)makeBorder:(BOOL)que;
+
 @end
