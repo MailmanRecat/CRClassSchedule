@@ -10,6 +10,7 @@
 
 @protocol CRTextFieldVCHandler <NSObject>
 
+- (BOOL)CRTextFieldVCShouldReturn:(UIViewController *)viewController;
 - (void)CRTextFieldVCDidDismiss:(NSString *)textFieldString;
 
 @end
@@ -17,5 +18,9 @@
 @interface CRTextFieldViewController : UIViewController
 
 @property( nonatomic, weak ) id<CRTextFieldVCHandler> handler;
+
+@property( nonatomic, strong ) NSString *placeholderString;
+@property( nonatomic, strong ) UIColor *tintColor;
+@property( nonatomic, assign ) UIReturnKeyType returnKeyType;
 
 @end

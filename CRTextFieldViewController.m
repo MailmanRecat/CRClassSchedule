@@ -30,13 +30,18 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.view.backgroundColor = [UIColor whiteColor];
-    self.title = @"class name";
     
     [self doPark];
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(didKeyBoardHide)
                                                  name:UIKeyboardDidHideNotification
                                                object:nil];
+}
+
+- (void)viewWillAppear:(BOOL)animated{
+    self.parkTextField.placeholder = self.placeholderString;
+    self.parkTextField.tintColor = self.tintColor;
+    self.parkTextField.returnKeyType = self.returnKeyType;
 }
 
 - (void)viewDidAppear:(BOOL)animated{
@@ -64,7 +69,7 @@
     [cons removeAllObjects];
     
     self.park.backgroundColor = [UIColor whiteColor];
-    self.park.layer.cornerRadius = 3.0f;
+    self.park.layer.cornerRadius = 2.0f;
     [self.park makeShadowWithSize:CGSizeMake(0, 1) opacity:0.17 radius:1.7];
     
     self.parkLeftButton.layer.cornerRadius = parkHeight / 2.0f;
@@ -74,8 +79,6 @@
     [self.parkLeftButton addTarget:self action:@selector(dismissSelf) forControlEvents:UIControlEventTouchUpInside];
     
     self.parkTextField.delegate = self;
-    self.parkTextField.placeholder = self.title;
-    self.parkTextField.tintColor = [UIColor CRColorType:CRColorTypeGoogleMapBlue];
 }
 
 - (BOOL)textFieldShouldEndEditing:(UITextField *)textField{
@@ -84,8 +87,13 @@
 }
 
 - (BOOL)textFieldShouldReturn:(UITextField *)textField{
-    [textField resignFirstResponder];
-    return YES;
+    
+    if( self.handler && [self.handler respondsToSelector:@selector(CRTextFieldVCShouldReturn:)] ){
+        return [self.handler CRTextFieldVCShouldReturn:self];
+    }else{
+        [textField resignFirstResponder];
+        return YES;
+    }
 }
 
 - (void)didKeyBoardHide{
@@ -97,6 +105,10 @@
 }
 
 - (void)dismissSelf{
+    if( [self.parkTextField isFirstResponder] ){
+        [self.parkTextField resignFirstResponder];
+        return;
+    }
     [self dismissViewControllerAnimated:YES completion:^{
         if( self.handler && [self.handler respondsToSelector:@selector(CRTextFieldVCDidDismiss:)] )
             [self.handler CRTextFieldVCDidDismiss:self.parkTextField.text];

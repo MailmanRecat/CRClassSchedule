@@ -10,9 +10,14 @@
 
 @implementation CRClassAccount
 
++ (instancetype)accountFromDictionary:(NSDictionary *)dic{
+    return [[CRClassAccount alloc] initFromDictionary:dic];
+}
+
 - (instancetype)initFromDictionary:(NSDictionary *)dic{
     self = [super init];
     if( self ){
+        self.current = dic[CRClassAccountCurrentKEY];
         self.ID = dic[CRClassAccountIDKEY];
         self.colorType = dic[CRClassAccountColorTypeKEY];
     }

@@ -22,8 +22,13 @@
                                                                    localizedSubtitle:nil
                                                                                 icon:[UIApplicationShortcutIcon iconWithType:UIApplicationShortcutIconTypeAdd]
                                                                             userInfo:nil];
+    UIApplicationShortcutItem *addAccount = [[UIApplicationShortcutItem alloc] initWithType:@"shortcutItemAddAccount"
+                                                                             localizedTitle:@"Add Account"
+                                                                          localizedSubtitle:nil
+                                                                                       icon:[UIApplicationShortcutIcon iconWithType:UIApplicationShortcutIconTypeContact]
+                                                                                   userInfo:nil];
     
-    [UIApplication sharedApplication].shortcutItems = @[ add ];
+    [UIApplication sharedApplication].shortcutItems = @[ add, addAccount ];
 }
 
 - (void)application:(UIApplication *)application performActionForShortcutItem:(UIApplicationShortcutItem *)shortcutItem completionHandler:(void (^)(BOOL))completionHandler{
@@ -38,6 +43,7 @@
 //    [CRTestFunction runCRTestFunc];
 //    [CRTestFunction insertAAccount];
 //    [CRTestFunction testClass];
+//    [CRTestFunction accountTest];
     
     [self doShortItems];
     return YES;

@@ -22,15 +22,39 @@
     self = [super init];
     if( self ){
         self.leftViewMode = UITextFieldViewModeAlways;
+        UIView *leftView = [UIView new];
         self.icon = [UILabel new];
-        self.icon.translatesAutoresizingMaskIntoConstraints = NO;
-        [self.icon addConstraints:[NSLayoutConstraint SpactecledBearFixed:self.icon type:SpactecledBearFixedHeight constant:56]];
-        [self.icon addConstraints:[NSLayoutConstraint SpactecledBearFixed:self.icon type:SpactecledBearFixedWidth constant:56 + 8]];
+        leftView.translatesAutoresizingMaskIntoConstraints = NO;
+        [leftView addAutolayoutSubviews:@[ self.icon ]];
+        leftView.backgroundColor = [UIColor clearColor];
+        [leftView addConstraints:[CRLayoutCons Layout:@[ leftView ] :CRLEqualHeightWidth :(CGFloat[]){ 72, 56, 1.0 }]];
+        [leftView addConstraints:[CRLayoutCons Layout:@[ self.icon, leftView ] :CRETopLeftBottom]];
+        [leftView addConstraints:[CRLayoutCons Layout:@[ self.icon ] :CRLEqualWidth :(CGFloat[]){ 56, 0, 1.0 }]];
         
         self.icon.textAlignment = NSTextAlignmentCenter;
         self.icon.font = [UIFont MaterialDesignIconsWithSize:21];
         self.icon.textColor = [UIColor colorWithWhite:117 / 255.0 alpha:1];
-        self.leftView = self.icon;
+        self.leftView = leftView;
+        
+        self.borderBottom = [CALayer layer];
+        [self.layer addSublayer:self.borderBottom];
+        self.borderBottom.backgroundColor = [UIColor colorWithWhite:217 / 255.0 alpha:1].CGColor;
+    }
+    return self;
+}
+
+- (instancetype)initWithoutIcon{
+    self = [super init];
+    if( self ){
+        self.leftViewMode = self.rightViewMode = UITextFieldViewModeAlways;
+        UIView *left = [UIView new];
+        UIView *right = [UIView new];
+        left.translatesAutoresizingMaskIntoConstraints = right.translatesAutoresizingMaskIntoConstraints = NO;
+        [left addConstraints:[CRLayoutCons Layout:@[ left ] :CRLEqualWidth :(CGFloat[]){ 16, 0, 1.0 }]];
+        [right addConstraints:[CRLayoutCons Layout:@[ right ] :CRLEqualWidth :(CGFloat[]){ 16, 0, 1.0 }]];
+        
+        self.leftView = left;
+        self.rightView = right;
         
         self.borderBottom = [CALayer layer];
         [self.layer addSublayer:self.borderBottom];

@@ -44,7 +44,7 @@
     [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:self.icon to:self type:EdgeTopLeftZero]];
     [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearFixed:self.icon type:SpactecledBearFixedEqual constant:56]];
     [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:self.textView to:self type:EdgeTopRightBottomZero constant:16]];
-    [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:self.textView to:self type:EdgeLeftZero constant:56 + 8]];
+    [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:self.textView to:self type:EdgeLeftZero constant:56 + 16]];
     [self addConstraints:cons];
     [cons removeAllObjects];
 }

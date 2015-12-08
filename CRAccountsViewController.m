@@ -19,10 +19,11 @@
 #import "CRAccountsTableViewCell.h"
 #import "CRAccountAddViewController.h"
 #import "CRInfoViewController.h"
+#import "CRTextFieldViewController.h"
 
 #import "CRClassAddViewController.h"
 
-@interface CRAccountsViewController()<UIScrollViewDelegate, UITableViewDataSource, UITableViewDelegate>
+@interface CRAccountsViewController()<CRTextFieldVCHandler, UIScrollViewDelegate, UITableViewDataSource, UITableViewDelegate>
 
 @property( nonatomic, strong ) NSMutableArray *cons;
 
@@ -34,6 +35,8 @@
 
 @property( nonatomic, assign ) NSUInteger selectedRow;
 
+@property( nonatomic, strong ) NSArray *accounts;
+
 @end
 
 @implementation CRAccountsViewController
@@ -43,9 +46,22 @@
     self.view.backgroundColor = [UIColor whiteColor];
     self.cons = [NSMutableArray new];
     self.selectedRow = 0;
+//    NSArray *test = [CRClassDatabase selectClassAccountFromAll];
+//    NSLog(@"%@", test);
+//    self.accounts = @[ [CRClassAccount accountFromDictionary:@{ CRClassAccountCurrentKEY: @"NO",
+//                                                                CRClassAccountIDKEY: @"name",
+//                                                                CRClassAccountColorTypeKEY: @"default"
+//                                                                }] ];
     
     [self doBear];
     [self doPark];
+}
+
+- (void)viewWillAppear:(BOOL)animated{
+    self.accounts = [CRClassDatabase selectClassAccountFromAll];
+    if( self.isBeingDismissed ){
+        NSLog(@"dismiss");
+    }
 }
 
 - (void)parkSunset{
@@ -115,19 +131,19 @@
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath{
-    if( indexPath.row == 4 ) return 52;
+    if( indexPath.row == [self.accounts count] + 1 ) return 52;
     
     return 56.0 + STATUS_BAR_HEIGHT;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section{
-    return 5;
+    return [self.accounts count] + 2;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath{
     static NSString *ACELL_ID = @"ACELL_ID";
     static NSString *BCELL_ID = @"BCELL_ID";
-    if( indexPath.row == 4 ){
+    if( indexPath.row == [self.accounts count] + 1 ){
         UITableViewCell *bcell = [tableView dequeueReusableCellWithIdentifier:BCELL_ID];
         if( !bcell ){
             bcell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:BCELL_ID];
@@ -143,19 +159,24 @@
     CRAccountsTableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:ACELL_ID];
     if( !cell ){
         cell = [[CRAccountsTableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:ACELL_ID];
+        cell.selectionStyle = UITableViewCellSelectionStyleNone;
     }
     
-    cell.selectionStyle = UITableViewCellSelectionStyleNone;
-    cell.icon.text = @"C";
-    cell.accountName.text = @"craig";
     if( indexPath.row == 0 ) [cell check];
-    if( indexPath.row == 3 ){
+    if( indexPath.row == [self.accounts count] ){
         [cell makeBorderBottom];
         cell.icon.font = [UIFont MaterialDesignIcons];
         cell.icon.text = [UIFont mdiPlus];
         cell.icon.textColor = [UIColor colorWithWhite:157 / 255.0 alpha:1];
         cell.icon.backgroundColor = [UIColor clearColor];
         cell.accountName.text = @"Add account";
+    }else{
+        CRClassAccount *account = (CRClassAccount *)self.accounts[indexPath.row];
+
+        cell.selectionStyle = UITableViewCellSelectionStyleNone;
+        cell.icon.text = [[account.ID substringToIndex:1] uppercaseString];
+        cell.icon.backgroundColor = [CRSettings CRAppColorTypes][[account.colorType lowercaseString]];
+        cell.accountName.text = account.ID;
     }
     
     return cell;
@@ -163,11 +184,14 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath{
     
-    NSLog(@"%ld", indexPath.row);
-    if( indexPath.row == 4 )
-        [self CRInfoViewController];
-    else if( indexPath.row == 3 )
-        [self CRAccountAddViewController];
+    if( indexPath.row == [self.accounts count] + 1 )
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self CRInfoViewController];
+        });
+    else if( indexPath.row == [self.accounts count] )
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self CRAccountAddViewController];
+        });
     else if( indexPath.row != self.selectedRow ){
         CRAccountsTableViewCell *cell = [tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:self.selectedRow inSection:0]];
         [cell unCheck];
@@ -175,6 +199,15 @@
         [cell check];
         self.selectedRow = indexPath.row;
     }
+}
+
+- (void)CRTextFieldViewController{
+    CRTextFieldViewController *textField = [CRTextFieldViewController new];
+    textField.handler = self;
+    textField.placeholderString = @"name";
+    textField.returnKeyType = UIReturnKeyNext;
+    textField.transitioningDelegate = self.transitioningDelegate;
+    [self presentViewController:textField animated:YES completion:nil];
 }
 
 - (void)CRAccountAddViewController{

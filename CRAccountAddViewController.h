@@ -7,7 +7,10 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "CRClassAccount.h"
 
 @interface CRAccountAddViewController : UIViewController
+
+@property( nonatomic, strong ) CRClassAccount *account;
 
 @end

@@ -47,7 +47,7 @@
         [self.layer addSublayer:self.momentDot];
         
         self.startTime = [UILabel new];
-        self.startTime.font = [CRSettings appFontOfSize:13];
+        self.startTime.font = [CRSettings appFontOfSize:15];
         self.startTime.textColor = color;
         self.startTime.text = @"Now";
         self.startTime.textAlignment = NSTextAlignmentCenter;

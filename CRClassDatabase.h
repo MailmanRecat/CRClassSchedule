@@ -13,11 +13,18 @@
 @interface CRClassDatabase : NSObject
 
 + (BOOL)insertCRClassSchedule:(CRClassSchedule *)schedule;
-+ (BOOL)insertCRClassAccount:(CRClassAccount *)account;
 
 + (NSArray *)selectClassFromUserName:(NSString *)name;
 
+
++ (BOOL)haveCRClassAccount:(NSString *)ID;
++ (BOOL)changeCRClassAccountCurrent:(CRClassAccount *)account;
++ (BOOL)insertCRClassAccount:(CRClassAccount *)account;
++ (BOOL)deleteCRClassAccountFromID:(NSString *)ID;
++ (BOOL)dropCRClassAccount;
++ (NSArray *)selectClassAccountFromAll;
 + (CRClassAccount *)selectCRClassAccountFromID:(NSString *)ID;
++ (CRClassAccount *)selectCRClassAccountFromCurrent;
 
 
 @end

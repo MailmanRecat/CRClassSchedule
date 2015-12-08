@@ -12,6 +12,7 @@
 
 @property( nonatomic, strong ) UILabel *icon;
 
+- (instancetype)initWithoutIcon;
 - (void)makeBorder:(BOOL)que;
 
 @end

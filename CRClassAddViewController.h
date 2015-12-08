@@ -11,19 +11,21 @@
 #import <UIKit/UIKit.h>
 #import "CRClassSchedule.h"
 
+typedef NS_ENUM(NSUInteger, CRViewModel){
+    CRViewModelDefault = 0,
+    CRViewModelEdit
+};
+
 @interface CRClassAddViewController : UIViewController
 
 @property( nonatomic, strong ) CRClassSchedule *classSchedule;
+@property( nonatomic, assign ) CRViewModel model;
 
 @property( nonatomic, assign ) BOOL isPreview;
 
++ (instancetype)shareFromClassSchedule:(CRClassSchedule *)classSchedule ViewModel:(CRViewModel)model;
 + (instancetype)shareFromClassSchedule:(CRClassSchedule *)classSchedule;
-- (instancetype)initFromClassSchedule:(CRClassSchedule *)classSchedule;
-
-- (void)editModel:(BOOL)edit;
 
 - (void)showDismissButton;
-- (void)makeBorder;
-- (void)makeClearBorder;
 
 @end

@@ -176,6 +176,8 @@
     [last statusOFF];
     self.curIndexPath = indexPath;
     
+    NSLog(@"indexpath %@ %@", cell, last);
+    
     self.curColor = cell.dot.textColor;
     self.curString = cell.dotname.text;
     

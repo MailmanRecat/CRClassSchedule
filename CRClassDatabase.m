@@ -50,44 +50,6 @@ static NSString *const CRClassAccountDataBaseKEY = @"CRCLASSACCOUNTDATABASEKEY";
     return YES;
 }
 
-+ (BOOL)insertCRClassAccount:(CRClassAccount *)account{
-    NSArray *createAccount = @[ account.ID, account.colorType ];
-    
-    NSMutableArray *accounts = [[NSMutableArray alloc] initWithArray:[self selectAccountFromAll]];
-    [accounts addObject:createAccount];
-    
-    [[NSUserDefaults standardUserDefaults] setObject:accounts forKey:CRClassAccountDataBaseKEY];
-    [[NSUserDefaults standardUserDefaults] synchronize];
-    
-    return YES;
-}
-
-+ (NSArray *)selectAccountFromAll{
-    NSArray *accounts;
-    accounts = [[NSUserDefaults standardUserDefaults] objectForKey:CRClassAccountDataBaseKEY];
-    if( accounts ) return accounts;
-    
-    return [NSArray new];
-}
-
-+ (CRClassAccount *)selectCRClassAccountFromID:(NSString *)ID{
-    NSArray *accounts = [self selectAccountFromAll];
-    __block CRClassAccount *classAccount;
-    
-    [accounts enumerateObjectsUsingBlock:^(id obj, NSUInteger indes, BOOL *sS){
-        NSArray *account = (NSArray *)obj;
-        if( [[account firstObject] isEqualToString:ID] ){
-            classAccount = [[CRClassAccount alloc] initFromDictionary:@{
-                                                                        CRClassAccountIDKEY: account.firstObject,
-                                                                        CRClassAccountColorTypeKEY: account.lastObject
-                                                                        }];
-            *sS = YES;
-        }
-    }];
-    
-    return classAccount;
-}
-
 + (NSArray *)selectClassFromWeekday:(NSString *)day{
     return [self selectClass:[self CRClassDatabaseKeyFromWeekday:day]];
 }
@@ -135,5 +97,131 @@ static NSString *const CRClassAccountDataBaseKEY = @"CRCLASSACCOUNTDATABASEKEY";
     
     return key;
 }
+
+// CRClassAccount database begin
++ (NSArray *)rowFromCRClassAccount:(CRClassAccount *)account{
+    return @[ account.current, account.ID, account.colorType ];
+}
+
++ (CRClassAccount *)CRClassAccountFromRow:(NSArray *)array{
+    return [CRClassAccount accountFromDictionary:@{
+                                                   CRClassAccountCurrentKEY: array.firstObject,
+                                                   CRClassAccountIDKEY: array[1],
+                                                   CRClassAccountColorTypeKEY: array.lastObject
+                                                   }];
+}
+
++ (NSArray *)selectClassAccountFromAll{
+    NSMutableArray *accounts = [[NSMutableArray alloc] initWithArray:[CRClassDatabase selectAccountFromAll]];
+    
+    [accounts enumerateObjectsUsingBlock:^(id obj, NSUInteger index, BOOL *sS){
+        accounts[index] = [CRClassDatabase CRClassAccountFromRow:accounts[index]];
+    }];
+    
+    return accounts;
+}
+
++ (NSArray *)selectAccountFromAll{
+    NSArray *accounts;
+    accounts = [[NSUserDefaults standardUserDefaults] objectForKey:CRClassAccountDataBaseKEY];
+    if( accounts ) return accounts;
+    
+    return [NSArray new];
+}
+
++ (BOOL)haveCRClassAccount:(NSString *)ID{
+    NSArray *accounts = [CRClassDatabase selectAccountFromAll];
+    __block BOOL have = NO;
+    
+    [accounts enumerateObjectsUsingBlock:^(id obj, NSUInteger index, BOOL *sS){
+        NSArray *account = (NSArray *)obj;
+        if( [account[1] isEqualToString:ID] )
+            have = YES;
+    }];
+    
+    return have;
+}
+
++ (BOOL)changeCRClassAccountCurrent:(CRClassAccount *)account{
+    NSArray *accounts = [CRClassDatabase selectAccountFromAll];
+    
+    [accounts enumerateObjectsUsingBlock:^(id obj, NSUInteger index, BOOL *sS){
+        NSMutableArray *acc = [[NSMutableArray alloc] initWithArray:(NSArray *)obj];
+        if( [acc[1] isEqualToString:account.ID] )
+            acc[0] = @"YES";
+        else
+            acc[0] = @"NO";
+    }];
+    
+    return YES;
+}
+
++ (BOOL)deleteCRClassAccountFromID:(NSString *)ID{
+    if( ![CRClassDatabase haveCRClassAccount:ID] ) return YES;
+    
+    NSMutableArray *accounts = [[NSMutableArray alloc] initWithArray:[CRClassDatabase selectAccountFromAll]];
+    [accounts enumerateObjectsUsingBlock:^(id obj, NSUInteger index, BOOL *sS){
+        NSArray *account = (NSArray *)obj;
+        if( [account[1] isEqualToString:ID] )
+            [accounts removeObjectAtIndex:index];
+    }];
+    
+    [[NSUserDefaults standardUserDefaults] setObject:accounts forKey:CRClassAccountDataBaseKEY];
+    
+    return YES;
+}
+
++ (BOOL)dropCRClassAccount{
+    [[NSUserDefaults standardUserDefaults] setObject:nil forKey:CRClassAccountDataBaseKEY];
+    return YES;
+}
+
++ (CRClassAccount *)selectCRClassAccountFromID:(NSString *)ID{
+    NSArray *accounts = [CRClassDatabase selectAccountFromAll];
+    __block CRClassAccount *classAccount;
+    
+    [accounts enumerateObjectsUsingBlock:^(id obj, NSUInteger index, BOOL *sS){
+        NSArray *account = (NSArray *)obj;
+        if( [account[1] isEqualToString:ID] ){
+            
+            classAccount = [CRClassDatabase CRClassAccountFromRow:account];
+            *sS = YES;
+        }
+    }];
+    
+    return classAccount;
+}
+
++ (CRClassAccount *)selectCRClassAccountFromCurrent{
+    NSArray *accounts = [CRClassDatabase selectAccountFromAll];
+    __block CRClassAccount *current;
+    
+    [accounts enumerateObjectsUsingBlock:^(id obj, NSUInteger index, BOOL *sS){
+        NSArray *account = (NSArray *)obj;
+        if( [account.firstObject isEqualToString:@"YES"] ){
+            
+            current = [CRClassDatabase CRClassAccountFromRow:account];
+            *sS = YES;
+        }
+    }];
+    
+    return current;
+}
+
++ (BOOL)insertCRClassAccount:(CRClassAccount *)account{
+    
+    if( [CRClassDatabase haveCRClassAccount:account.ID] ) return NO;
+    
+    NSArray *row = [CRClassDatabase rowFromCRClassAccount:account];
+    
+    NSMutableArray *accounts = [[NSMutableArray alloc] initWithArray:[self selectAccountFromAll]];
+    [accounts addObject:row];
+
+    [[NSUserDefaults standardUserDefaults] setObject:accounts forKey:CRClassAccountDataBaseKEY];
+    [[NSUserDefaults standardUserDefaults] synchronize];
+    
+    return YES;
+}
+// CRClassAccount database end
 
 @end
