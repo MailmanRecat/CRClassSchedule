@@ -21,6 +21,9 @@
 
 //CRClassSchedule Database func start
 + (BOOL)dropCRClassScheduleFromUser:(NSString *)user;
++ (BOOL)insertCRClassSchedule:(CRClassSchedule *)schedule fromUser:(NSString *)user;
++ (BOOL)deleteCRClassSchedule:(CRClassSchedule *)schedule;
++ (NSArray *)selectCRClassScheduleFromUser:(NSString *)user;
 //CRClassSchedule Databse func end
 
 //CRClassAccount Database func start

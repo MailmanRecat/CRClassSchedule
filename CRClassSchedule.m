@@ -28,9 +28,13 @@
     return self;
 }
 
++ (instancetype)ClassScheduleFromDictionary:(NSDictionary *)dictionary{
+    return [[CRClassSchedule alloc] initFromDictionary:dictionary];
+}
+
 + (instancetype)ClassCreateTempleSchedule{
     return [[CRClassSchedule alloc] initFromDictionary:@{
-                                                         ClassScheduleTag: @1,
+                                                         ClassScheduleID: ClassScheduleInvalidID,
                                                          ClassScheduleUser: @"user",
                                                          ClassScheduleWeekday: [CRSettings weekday],
                                                          ClassScheduleTimeStart: @"07: 00",

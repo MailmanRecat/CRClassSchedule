@@ -28,29 +28,6 @@ static NSString *const CRClassAccountDataBaseKEY = @"CRCLASSACCOUNTDATABASEKEY";
 
 @implementation CRClassDatabase
 
-+ (NSString *)CRClassScheduleDatabaseKeyFromUser:(NSString *)user{
-    return [NSString stringWithFormat:@"%@%@", user, CRClassScheduleDatabaseKey];
-}
-
-+ (NSUInteger)integerFromTimeString:(NSString *)time{
-    return [[NSString stringWithFormat:@"%@%@", [time substringWithRange:NSMakeRange(0, 2)], [time substringWithRange:NSMakeRange(3, 2)]] integerValue];
-}
-
-+ (NSArray *)sortCRClassScheduleByTime:(NSArray *)schedule{
-    return [schedule sortedArrayUsingComparator:^(id obj1, id obj2){
-        NSUInteger number1 = [CRClassDatabase integerFromTimeString:(NSString *)obj1[3]];
-        NSUInteger number2 = [CRClassDatabase integerFromTimeString:(NSString *)obj2[3]];
-        
-        if( number1 < number2 )
-            return (NSComparisonResult)NSOrderedAscending;
-        
-        if( number1 > number2 )
-            return (NSComparisonResult)NSOrderedDescending;
-        
-        return (NSComparisonResult)NSOrderedSame;
-    }];
-}
-
 + (BOOL)insertCRClassSchedule:(CRClassSchedule *)schedule{
     NSArray *row = @[
                      schedule.user,
@@ -122,6 +99,81 @@ static NSString *const CRClassAccountDataBaseKEY = @"CRCLASSACCOUNTDATABASEKEY";
     
     return key;
 }
+
+//CRClassSchedule datebase begin
++ (NSString *)CRClassScheduleDatabaseKeyFromUser:(NSString *)user{
+    return [NSString stringWithFormat:@"%@%@", user, CRClassScheduleDatabaseKey];
+}
+
++ (NSUInteger)integerFromTimeString:(NSString *)time{
+    return [[NSString stringWithFormat:@"%@%@", [time substringWithRange:NSMakeRange(0, 2)], [time substringWithRange:NSMakeRange(3, 2)]] integerValue];
+}
+
++ (NSArray *)sortCRClassScheduleByTime:(NSArray *)schedule{
+    return [schedule sortedArrayUsingComparator:^(id obj1, id obj2){
+        NSUInteger number1 = [CRClassDatabase integerFromTimeString:(NSString *)obj1[3]];
+        NSUInteger number2 = [CRClassDatabase integerFromTimeString:(NSString *)obj2[3]];
+        
+        if( number1 < number2 )
+            return (NSComparisonResult)NSOrderedAscending;
+        
+        if( number1 > number2 )
+            return (NSComparisonResult)NSOrderedDescending;
+        
+        return (NSComparisonResult)NSOrderedSame;
+    }];
+}
+
++ (NSArray *)rowFromCRClassSchedule:(CRClassSchedule *)schedule{
+    return @[
+             schedule.scheduleID,
+             schedule.user,
+             schedule.weekday,
+             schedule.timeStart,
+             schedule.location,
+             schedule.classname,
+             schedule.teacher,
+             schedule.timeLong,
+             schedule.colorType,
+             schedule.userInfo,
+             schedule.type
+             ];
+}
+
++ (CRClassSchedule *)CRClassScheduleFromRow:(NSArray *)row{
+    return [CRClassSchedule ClassScheduleFromDictionary:@{
+                                                          ClassScheduleID: row.firstObject,
+                                                          ClassScheduleUser: row[1],
+                                                          ClassScheduleWeekday: row[2],
+                                                          ClassScheduleTimeStart: row[3],
+                                                          ClassScheduleLocation: row[4],
+                                                          ClassScheduleClassname: row[5],
+                                                          ClassScheduleTeacher: @"Edit teacher",
+                                                          ClassScheduleTimeLong: @"40 mins",
+                                                          ClassScheduleColorType: @"Default",
+                                                          ClassScheduleUserInfo: @"Add note",
+                                                          ClassScheduleType: @"nullable type"
+                                                          }];
+}
+
++ (NSMutableArray *)selectCRClassScheduleFromUser:(NSString *)user{
+    NSString *KEY = [CRClassDatabase CRClassScheduleDatabaseKeyFromUser:user];
+    NSMutableArray *schedules = [[NSUserDefaults standardUserDefaults] objectForKey:KEY];
+    if( !schedules ){
+        schedules = [NSMutableArray new];
+        for( int i = 0; i < 7; i++ ){
+            schedules[i] = [NSMutableArray new];
+        }
+    }
+    
+    return schedules;
+}
+
++ (BOOL)insertCRClassSchedule:(CRClassSchedule *)schedule fromUser:(NSString *)user{
+    NSMutableArray *schedules = [CRClassDatabase selectCRClassScheduleFromUser:user];
+    return YES;
+}
+//CRClassSchedule datebase end
 
 // CRClassAccount database begin
 + (NSArray *)rowFromCRClassAccount:(CRClassAccount *)account{
