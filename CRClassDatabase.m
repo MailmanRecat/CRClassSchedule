@@ -18,6 +18,8 @@ static NSString *const CRClassDatabaseSaturdayKey = @"CRClassDatabaseSaturdayKey
 
 static NSString *const CRClassDatabaseKey = @"CRCLASSDATABASEKEY";
 
+static NSString *const CRClassScheduleDatabaseKey = @"CRClassScheduleDatabaseKey";
+
 static NSString *const CRClassAccountDataBaseKEY = @"CRCLASSACCOUNTDATABASEKEY";
 
 @interface CRClassDatabase()
@@ -25,6 +27,29 @@ static NSString *const CRClassAccountDataBaseKEY = @"CRCLASSACCOUNTDATABASEKEY";
 @end
 
 @implementation CRClassDatabase
+
++ (NSString *)CRClassScheduleDatabaseKeyFromUser:(NSString *)user{
+    return [NSString stringWithFormat:@"%@%@", user, CRClassScheduleDatabaseKey];
+}
+
++ (NSUInteger)integerFromTimeString:(NSString *)time{
+    return [[NSString stringWithFormat:@"%@%@", [time substringWithRange:NSMakeRange(0, 2)], [time substringWithRange:NSMakeRange(3, 2)]] integerValue];
+}
+
++ (NSArray *)sortCRClassScheduleByTime:(NSArray *)schedule{
+    return [schedule sortedArrayUsingComparator:^(id obj1, id obj2){
+        NSUInteger number1 = [CRClassDatabase integerFromTimeString:(NSString *)obj1[3]];
+        NSUInteger number2 = [CRClassDatabase integerFromTimeString:(NSString *)obj2[3]];
+        
+        if( number1 < number2 )
+            return (NSComparisonResult)NSOrderedAscending;
+        
+        if( number1 > number2 )
+            return (NSComparisonResult)NSOrderedDescending;
+        
+        return (NSComparisonResult)NSOrderedSame;
+    }];
+}
 
 + (BOOL)insertCRClassSchedule:(CRClassSchedule *)schedule{
     NSArray *row = @[

@@ -16,7 +16,14 @@
 
 + (NSArray *)selectClassFromUserName:(NSString *)name;
 
+//test
++ (NSArray *)sortCRClassScheduleByTime:(NSArray *)schedules;
 
+//CRClassSchedule Database func start
++ (BOOL)dropCRClassScheduleFromUser:(NSString *)user;
+//CRClassSchedule Databse func end
+
+//CRClassAccount Database func start
 + (BOOL)haveCRClassAccount:(NSString *)ID;
 + (BOOL)changeCRClassAccountCurrent:(CRClassAccount *)account;
 + (BOOL)insertCRClassAccount:(CRClassAccount *)account;
@@ -25,6 +32,7 @@
 + (NSArray *)selectClassAccountFromAll;
 + (CRClassAccount *)selectCRClassAccountFromID:(NSString *)ID;
 + (CRClassAccount *)selectCRClassAccountFromCurrent;
+//CRClassAccount Databse func end
 
 
 @end

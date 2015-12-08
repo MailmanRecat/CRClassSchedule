@@ -40,10 +40,11 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     
-//    [CRTestFunction runCRTestFunc];
+    [CRTestFunction runCRTestFunc];
 //    [CRTestFunction insertAAccount];
 //    [CRTestFunction testClass];
 //    [CRTestFunction accountTest];
+//    [CRTestFunction testScheduleSort];
     
     [self doShortItems];
     return YES;
