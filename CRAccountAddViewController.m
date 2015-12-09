@@ -230,8 +230,7 @@
 - (void)saveAccount{
     NSLog(@"%d", self.saveable);
     NSLog(@"%@ %@", self.account.ID, self.account.colorType);
-    BOOL save = [CRClassDatabase insertCRClassAccount:self.account];
-    if( self.saveable && save ){
+    if( self.saveable ){
         [CRClassDatabase insertCRClassAccount:self.account];
         [self dismissSelf];
     }else{

@@ -64,7 +64,7 @@
         self.className.textColor = self.location.textColor = [UIColor whiteColor];
         self.wrapper.layer.cornerRadius = 3.0f;
         self.className.font = [CRSettings appFontOfSize:17 weight:UIFontWeightMedium];
-        self.location.font = [CRSettings appFontOfSize:15 weight:UIFontWeightThin];
+        self.location.font = [CRSettings appFontOfSize:14 weight:UIFontWeightThin];
     }
     return self;
 }
@@ -90,7 +90,7 @@
 }
 
 - (void)layoutClass{
-    CGFloat classNameHeight = 24;
+    CGFloat classNameHeight = 20;
     NSLayoutConstraint *layoutGuide;
     NSMutableArray *cons = [NSMutableArray new];
 
@@ -146,7 +146,7 @@
     [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:self.className to:self.wrapper type:EdgeTopZero constant:4]];
     [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearFixed:self.className type:SpactecledBearFixedHeight constant:classNameHeight]];
     [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:self.className to:self.wrapper type:EdgeLeftRightZero constant:8]];
-    [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:self.location to:self.wrapper type:EdgeTopZero constant:28]];
+    [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:self.location to:self.wrapper type:EdgeTopZero constant:4 + classNameHeight]];
     [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:self.location to:self.wrapper type:EdgeLeftRightZero constant:8]];
     [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearFixed:self.location type:SpactecledBearFixedHeight constant:classNameHeight]];
     [self.wrapper addConstraints:cons];

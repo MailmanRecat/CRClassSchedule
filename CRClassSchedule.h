@@ -35,7 +35,7 @@ static NSString *const ClassScheduleType = @"ClassScheduleType";
 @property( nonatomic, strong ) NSString *userInfo;
 @property( nonatomic, strong ) NSString *type;
 
-//- (instancetype)initFromDictionary:(NSDictionary *)dictionary;
+- (instancetype)initFromDictionary:(NSDictionary *)dictionary;
 + (instancetype)ClassScheduleFromDictionary:(NSDictionary *)dictionary;
 + (instancetype)ClassCreateTempleSchedule;
 

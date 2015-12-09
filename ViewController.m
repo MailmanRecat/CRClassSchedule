@@ -34,6 +34,7 @@
 @property( nonatomic, strong ) UILabel *titleLabel;
 @property( nonatomic, strong ) UIButton *actionButton;
 @property( nonatomic, strong ) UIButton *actionButtonAccount;
+@property( nonatomic, assign ) BOOL CAAnimationFlag;
 @property( nonatomic, strong ) UITableView *bear;
 
 @property( nonatomic, strong ) NSArray *headerViews;
@@ -108,7 +109,8 @@
     NSIndexPath *indexPath = [self.bear indexPathForRowAtPoint:location];
     
     if( !indexPath ) return nil;
-    UITableViewCell *cell = [self.bear cellForRowAtIndexPath:indexPath];
+    CRClassTableViewCell *cell = [self.bear cellForRowAtIndexPath:indexPath];
+
     previewingContext.sourceRect = cell.frame;
 
     CRClassSchedule *schedule = [CRTestFunction scheduleFromNSArray:self.testData[indexPath.section][indexPath.row]];
@@ -121,7 +123,6 @@
     NSMutableArray *cons = [NSMutableArray new];
     self.park = [UIView new];
     self.titleLabel = [UILabel new];
-    HuskyButton *backButton = [HuskyButton new];
     [self.view addAutolayoutSubviews:@[ self.park ]];
     [self.park addAutolayoutSubviews:@[ self.titleLabel ]];
     [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:self.park to:self.view type:EdgeTopLeftRightZero]];
@@ -171,8 +172,8 @@
     self.actionButtonAccount.titleLabel.font = [CRSettings appFontOfSize:27];
     self.actionButton.backgroundColor = [UIColor CRColorType:CRColorTypeGoogleTomato];
     self.actionButtonAccount.backgroundColor = [UIColor CRColorType:CRColorTypeGoogleYellow];
-    [self.actionButton makeShadowWithSize:CGSizeMake(0.0f, 6.0f) opacity:0.3f radius:7.0f];
-    [self.actionButtonAccount makeShadowWithSize:CGSizeMake(0.0f, 6.0f) opacity:0.3f radius:7.0f];
+    [self.actionButton makeShadowWithSize:CGSizeMake(0.0f, 1.7f) opacity:0.3f radius:1.7f];
+    [self.actionButtonAccount makeShadowWithSize:CGSizeMake(0.0f, 1.7f) opacity:0.3f radius:1.7f];
     [self.actionButtonAccount addTarget:self action:@selector(CRAccountsViewController) forControlEvents:UIControlEventTouchUpInside];
     [self.actionButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     [self.actionButtonAccount setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
@@ -267,9 +268,9 @@
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath{
     
     if( indexPath.row == 0 || indexPath.row + 1 == [self tableView:tableView numberOfRowsInSection:indexPath.section] )
-        return 66.0f + 20.0f;
+        return 66.0f + 12.0f;
     
-    return 56.0f + 20.0f;
+    return 56.0f + 12.0f;
 }
 
 - (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section{
@@ -359,6 +360,7 @@
 //    CRClassAddViewController *CRClassAddVC = [CRClassAddViewController shareFromClassSchedule:schedule];
 //    CRClassAddVC.transitioningDelegate = self.transitionAnimationObject;
 //    [self presentViewController:CRClassAddVC animated:YES completion:nil];
+    [self animationFloatingButton:self.actionButton];
 }
 
 - (void)CRClassAddViewController{
@@ -371,8 +373,32 @@
 
 - (void)CRAccountsViewController{
     CRAccountsViewController *accounts = [CRAccountsViewController new];
-    accounts.transitioningDelegate = self.transitionAnimationDafult;
     [self presentViewController:accounts animated:YES completion:nil];
+}
+
+- (void)animationFloatingButton:(UIView *)view{
+    if( self.CAAnimationFlag ) return;
+    self.CAAnimationFlag = YES;
+    
+    CAKeyframeAnimation *animation = [CAKeyframeAnimation animationWithKeyPath:@"transform.scale"];
+    animation.values = @[ @1.0, @1.3, @1.0 ];
+    CABasicAnimation *r = [CABasicAnimation animationWithKeyPath:@"transform.rotation"];
+    r.fromValue = [NSNumber numberWithFloat:0];
+    r.toValue = [NSNumber numberWithFloat:M_PI];
+    
+    CAAnimationGroup *group = [CAAnimationGroup animation];
+    group.timingFunction = [CAMediaTimingFunction functionWithControlPoints:0.4 :0 :0.2 :1];
+    group.duration = 1.0f;
+    group.removedOnCompletion = YES;
+    group.animations = @[ animation, r ];
+    
+    group.delegate = self;
+    
+    [view.layer addAnimation:group forKey:@"jey"];
+}
+
+- (void)animationDidStop:(CAAnimation *)anim finished:(BOOL)flag{
+    self.CAAnimationFlag = NO;
 }
 
 - (UIStatusBarStyle)preferredStatusBarStyle{

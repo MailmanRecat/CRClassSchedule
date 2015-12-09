@@ -12,16 +12,12 @@
 
 @interface CRClassDatabase : NSObject
 
-+ (BOOL)insertCRClassSchedule:(CRClassSchedule *)schedule;
-
-+ (NSArray *)selectClassFromUserName:(NSString *)name;
-
 //test
 + (NSArray *)sortCRClassScheduleByTime:(NSArray *)schedules;
 
 //CRClassSchedule Database func start
 + (BOOL)dropCRClassScheduleFromUser:(NSString *)user;
-+ (BOOL)insertCRClassSchedule:(CRClassSchedule *)schedule fromUser:(NSString *)user;
++ (BOOL)insertCRClassSchedule:(CRClassSchedule *)schedule;
 + (BOOL)deleteCRClassSchedule:(CRClassSchedule *)schedule;
 + (NSArray *)selectCRClassScheduleFromUser:(NSString *)user;
 //CRClassSchedule Databse func end

@@ -16,6 +16,7 @@
 #import "CRClassDatabase.h"
 #import "UIColor+CRColor.h"
 
+#import "CRTransitionAnimationObject.h"
 #import "CRAccountsTableViewCell.h"
 #import "CRAccountAddViewController.h"
 #import "CRInfoViewController.h"
@@ -26,6 +27,7 @@
 @interface CRAccountsViewController()<CRTextFieldVCHandler, UIScrollViewDelegate, UITableViewDataSource, UITableViewDelegate>
 
 @property( nonatomic, strong ) NSMutableArray *cons;
+@property( nonatomic, strong ) CRTransitionAnimationObject *transitionAnimationObject;
 
 @property( nonatomic, strong ) UIView *park;
 @property( nonatomic, strong ) UILabel *nameplate;
@@ -45,6 +47,7 @@
     [super viewDidLoad];
     self.view.backgroundColor = [UIColor whiteColor];
     self.cons = [NSMutableArray new];
+    self.transitionAnimationObject = [CRTransitionAnimationObject defaultCRTransitionAnimation];
     self.selectedRow = 0;
 //    NSArray *test = [CRClassDatabase selectClassAccountFromAll];
 //    NSLog(@"%@", test);
@@ -59,9 +62,7 @@
 
 - (void)viewWillAppear:(BOOL)animated{
     self.accounts = [CRClassDatabase selectClassAccountFromAll];
-    if( self.isBeingDismissed ){
-        NSLog(@"dismiss");
-    }
+    [self.bear reloadData];
 }
 
 - (void)parkSunset{
@@ -143,6 +144,8 @@
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath{
     static NSString *ACELL_ID = @"ACELL_ID";
     static NSString *BCELL_ID = @"BCELL_ID";
+    static NSString *ADDCELL_ID = @"ADDCELL)ID";
+    
     if( indexPath.row == [self.accounts count] + 1 ){
         UITableViewCell *bcell = [tableView dequeueReusableCellWithIdentifier:BCELL_ID];
         if( !bcell ){
@@ -155,29 +158,36 @@
         }
         return bcell;
     }
+    CRAccountsTableViewCell *cell;
     
-    CRAccountsTableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:ACELL_ID];
+    if( indexPath.row == [self.accounts count] ){
+        cell = [tableView dequeueReusableCellWithIdentifier:ADDCELL_ID];
+        if( !cell ){
+            cell = [[CRAccountsTableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:ADDCELL_ID];
+            [cell makeBorderBottom];
+            cell.icon.font = [UIFont MaterialDesignIcons];
+            cell.icon.text = [UIFont mdiPlus];
+            cell.icon.textColor = [UIColor colorWithWhite:157 / 255.0 alpha:1];
+            cell.icon.backgroundColor = [UIColor clearColor];
+            cell.accountName.text = @"Add account";
+        }
+        return cell;
+    }
+    
+    CRClassAccount *account = (CRClassAccount *)self.accounts[indexPath.row];
+    cell = [tableView dequeueReusableCellWithIdentifier:ACELL_ID];
     if( !cell ){
         cell = [[CRAccountsTableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:ACELL_ID];
         cell.selectionStyle = UITableViewCellSelectionStyleNone;
     }
     
-    if( indexPath.row == 0 ) [cell check];
-    if( indexPath.row == [self.accounts count] ){
-        [cell makeBorderBottom];
-        cell.icon.font = [UIFont MaterialDesignIcons];
-        cell.icon.text = [UIFont mdiPlus];
-        cell.icon.textColor = [UIColor colorWithWhite:157 / 255.0 alpha:1];
-        cell.icon.backgroundColor = [UIColor clearColor];
-        cell.accountName.text = @"Add account";
-    }else{
-        CRClassAccount *account = (CRClassAccount *)self.accounts[indexPath.row];
-
-        cell.selectionStyle = UITableViewCellSelectionStyleNone;
-        cell.icon.text = [[account.ID substringToIndex:1] uppercaseString];
-        cell.icon.backgroundColor = [CRSettings CRAppColorTypes][[account.colorType lowercaseString]];
-        cell.accountName.text = account.ID;
-    }
+    cell.selectionStyle = UITableViewCellSelectionStyleNone;
+    cell.icon.text = [[account.ID substringToIndex:1] uppercaseString];
+    cell.icon.backgroundColor = [CRSettings CRAppColorTypes][[account.colorType lowercaseString]];
+    cell.accountName.text = account.ID;
+    
+    if( indexPath.row == self.selectedRow )
+        [cell check];
     
     return cell;
 }
@@ -212,7 +222,7 @@
 
 - (void)CRAccountAddViewController{
     CRAccountAddViewController *accountAdd = [CRAccountAddViewController new];
-    accountAdd.transitioningDelegate = self.transitioningDelegate;
+    accountAdd.transitioningDelegate = self.transitionAnimationObject;
     [self presentViewController:accountAdd animated:YES completion:nil];
 }
 
