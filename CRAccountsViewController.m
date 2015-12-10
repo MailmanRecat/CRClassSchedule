@@ -24,7 +24,7 @@
 
 #import "CRClassAddViewController.h"
 
-@interface CRAccountsViewController()<CRTextFieldVCHandler, UIScrollViewDelegate, UITableViewDataSource, UITableViewDelegate>
+@interface CRAccountsViewController()<UIScrollViewDelegate, UITableViewDataSource, UITableViewDelegate>
 
 @property( nonatomic, strong ) NSMutableArray *cons;
 @property( nonatomic, strong ) CRTransitionAnimationObject *transitionAnimationObject;
@@ -36,7 +36,6 @@
 @property( nonatomic, strong ) UITableView *bear;
 
 @property( nonatomic, assign ) NSUInteger selectedRow;
-
 @property( nonatomic, strong ) NSArray *accounts;
 
 @end
@@ -48,13 +47,6 @@
     self.view.backgroundColor = [UIColor whiteColor];
     self.cons = [NSMutableArray new];
     self.transitionAnimationObject = [CRTransitionAnimationObject defaultCRTransitionAnimation];
-    self.selectedRow = 0;
-//    NSArray *test = [CRClassDatabase selectClassAccountFromAll];
-//    NSLog(@"%@", test);
-//    self.accounts = @[ [CRClassAccount accountFromDictionary:@{ CRClassAccountCurrentKEY: @"NO",
-//                                                                CRClassAccountIDKEY: @"name",
-//                                                                CRClassAccountColorTypeKEY: @"default"
-//                                                                }] ];
     
     [self doBear];
     [self doPark];
@@ -175,19 +167,23 @@
     }
     
     CRClassAccount *account = (CRClassAccount *)self.accounts[indexPath.row];
+
     cell = [tableView dequeueReusableCellWithIdentifier:ACELL_ID];
     if( !cell ){
         cell = [[CRAccountsTableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:ACELL_ID];
         cell.selectionStyle = UITableViewCellSelectionStyleNone;
     }
     
-    cell.selectionStyle = UITableViewCellSelectionStyleNone;
     cell.icon.text = [[account.ID substringToIndex:1] uppercaseString];
     cell.icon.backgroundColor = [CRSettings CRAppColorTypes][[account.colorType lowercaseString]];
     cell.accountName.text = account.ID;
     
-    if( indexPath.row == self.selectedRow )
-        [cell check];
+    if( [account.current isEqualToString:@"YES"] ){
+        [cell makeCheck];
+        if( !self.selectedRow ) self.selectedRow = indexPath.row;
+    }else{
+        [cell makeUnCheck];
+    }
     
     return cell;
 }
@@ -198,22 +194,28 @@
         dispatch_async(dispatch_get_main_queue(), ^{
             [self CRInfoViewController];
         });
+    
     else if( indexPath.row == [self.accounts count] )
         dispatch_async(dispatch_get_main_queue(), ^{
             [self CRAccountAddViewController];
         });
+    
     else if( indexPath.row != self.selectedRow ){
+        CRClassAccount *account = (CRClassAccount *)self.accounts[indexPath.row];
+
         CRAccountsTableViewCell *cell = [tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:self.selectedRow inSection:0]];
-        [cell unCheck];
+        [cell makeUnCheck];
         cell = [tableView cellForRowAtIndexPath:indexPath];
-        [cell check];
+        [cell makeCheck];
+        
         self.selectedRow = indexPath.row;
+        [CRClassDatabase changeCRClassAccountCurrent:account];
+        self.accounts = [CRClassDatabase selectClassAccountFromAll];
     }
 }
 
 - (void)CRTextFieldViewController{
     CRTextFieldViewController *textField = [CRTextFieldViewController new];
-    textField.handler = self;
     textField.placeholderString = @"name";
     textField.returnKeyType = UIReturnKeyNext;
     textField.transitioningDelegate = self.transitioningDelegate;

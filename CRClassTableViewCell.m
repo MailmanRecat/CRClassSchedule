@@ -29,6 +29,7 @@
         [self initClass];
         
         self.wrapper.backgroundColor = [UIColor clearColor];
+        self.className.font = [CRSettings appFontOfSize:17 weight:UIFontWeightSemibold];
         self.className.text = @"Don't have any class today.";
         self.className.textColor = [UIColor colorWithWhite:157 / 255.0 alpha:1];
         self.startTime.hidden = YES;
@@ -61,6 +62,7 @@
     if( self ){
         [self initClass];
         self.startTime.font = [CRSettings appFontOfSize:21 weight:UIFontWeightMedium];
+        self.startTime.textColor = [UIColor colorWithWhite:117 / 255.0 alpha:1];
         self.className.textColor = self.location.textColor = [UIColor whiteColor];
         self.wrapper.layer.cornerRadius = 3.0f;
         self.className.font = [CRSettings appFontOfSize:17 weight:UIFontWeightMedium];
@@ -87,6 +89,7 @@
     
     self.wrapper.layer.shouldRasterize = YES;
     self.wrapper.layer.rasterizationScale = [UIScreen mainScreen].scale;
+    self.className.font = [CRSettings appFontOfSize:15];
 }
 
 - (void)layoutClass{

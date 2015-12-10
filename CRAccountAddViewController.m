@@ -215,7 +215,10 @@
 }
 
 - (void)CRColorPickerDidDismissHandler:(UIColor *)color name:(NSString *)name{
-    self.doneButton.backgroundColor = self.guideText.textColor = self.nextButton.backgroundColor = color;
+    [UIView animateWithDuration:0.25f
+                     animations:^{
+                         self.doneButton.backgroundColor = self.guideText.textColor = self.nextButton.backgroundColor = color;
+                     }];
     self.account.colorType = name;
 }
 
@@ -232,6 +235,7 @@
     NSLog(@"%@ %@", self.account.ID, self.account.colorType);
     if( self.saveable ){
         [CRClassDatabase insertCRClassAccount:self.account];
+        [CRClassDatabase changeCRClassAccountCurrent:self.account];
         [self dismissSelf];
     }else{
         if( ![self.infomation.text isEqualToString:@"account exists"] ){

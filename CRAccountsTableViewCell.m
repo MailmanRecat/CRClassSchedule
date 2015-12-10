@@ -70,11 +70,11 @@
     return self;
 }
 
-- (void)check{
+- (void)makeCheck{
     [UIView animateWithDuration:0.25f animations:^{ self.sele.alpha = 1; }];
 }
 
-- (void)unCheck{
+- (void)makeUnCheck{
     [UIView animateWithDuration:0.25f animations:^{ self.sele.alpha = 0; }];
 }
 

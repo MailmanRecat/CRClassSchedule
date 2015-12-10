@@ -14,8 +14,8 @@
 @property( nonatomic, strong ) UILabel *icon;
 @property( nonatomic, strong ) UILabel *accountName;
 
-- (void)check;
-- (void)unCheck;
+- (void)makeCheck;
+- (void)makeUnCheck;
 
 - (void)makeBorderTop;
 - (void)makeBorderBottom;

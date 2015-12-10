@@ -14,6 +14,7 @@
 - (instancetype)initFromDictionary:(NSDictionary *)dictionary{
     self = [super init];
     if( self ){
+        self.scheduleID = dictionary[ClassScheduleID];
         self.user = dictionary[ClassScheduleUser];
         self.weekday = dictionary[ClassScheduleWeekday];
         self.timeStart = dictionary[ClassScheduleTimeStart];
@@ -44,7 +45,7 @@
                                                          ClassScheduleTimeLong: @"40 mins",
                                                          ClassScheduleColorType: @"Default",
                                                          ClassScheduleUserInfo: @"Add note",
-                                                         ClassScheduleType: @"nullable type"
+                                                         ClassScheduleType: @"type for feathure"
                                                          }];
 }
 

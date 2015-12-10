@@ -14,6 +14,7 @@
 #import "UIFont+MaterialDesignIcons.h"
 #import "CRSettings.h"
 #import "CRClassDatabase.h"
+#import "CRClassCurrent.h"
 #import "UIColor+CRColor.h"
 #import "HuskyButton.h"
 #import "CRClassTableViewCell.h"
@@ -70,8 +71,8 @@
     self.transitionAnimationDafult = [CRTransitionAnimationObject defaultCRTransitionAnimation];
     self.shouldRelayoutGuide = [NSMutableArray new];
     
-    [self doPark];
     [self doBear];
+    [self doPark];
     [self doActionButton];
     [self doHeaderViews];
     
@@ -79,6 +80,13 @@
     [self registerForPreviewingWithDelegate:self sourceView:self.bear];
     
     self.testData = [[NSUserDefaults standardUserDefaults] objectForKey:@"CRClassTestData"];
+}
+
+- (void)viewWillAppear:(BOOL)animated{
+    CRClassAccount *currentAccount = [CRClassCurrent account];
+    self.park.backgroundColor =
+    self.actionButtonAccount.backgroundColor = [CRSettings CRAppColorTypes][[currentAccount.colorType lowercaseString]];
+    [self.actionButtonAccount setTitle:[[currentAccount.ID substringToIndex:1] uppercaseString] forState:UIControlStateNormal];
 }
 
 - (void)viewDidAppear:(BOOL)animated{
@@ -120,12 +128,27 @@
 }
 
 - (void)doPark{
-    NSMutableArray *cons = [NSMutableArray new];
-    self.park = [UIView new];
-    self.titleLabel = [UILabel new];
+    
+    self.park = ({
+        UIView *park = [UIView new];
+        park.backgroundColor = [UIColor whiteColor];
+        [park makeShadowWithSize:CGSizeMake(0, 1) opacity:0.27 radius:1.7];
+        park;
+    });
+    
+    self.titleLabel = ({
+        UILabel *label = [UILabel new];
+        label.alpha = 0;
+        label.textAlignment = NSTextAlignmentCenter;
+        label.textColor = [UIColor whiteColor];
+        label.font = [CRSettings appFontOfSize:19];
+        label.text = self.title;
+        label;
+    });
+    
     [self.view addAutolayoutSubviews:@[ self.park ]];
     [self.park addAutolayoutSubviews:@[ self.titleLabel ]];
-    [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:self.park to:self.view type:EdgeTopLeftRightZero]];
+    [CRLayout view:@[ self.park, self.view ] type:CREdgeTopLeftRight];
     self.parkLayoutGuide = [NSLayoutConstraint constraintWithItem:self.park
                                                         attribute:NSLayoutAttributeHeight
                                                         relatedBy:NSLayoutRelationEqual
@@ -134,77 +157,67 @@
                                                        multiplier:1.0
                                                          constant:STATUS_BAR_HEIGHT];
     [self.view addConstraint:self.parkLayoutGuide];
-    [self.view addConstraints:cons];
-    [cons removeAllObjects];
-    [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:self.titleLabel to:self.park type:EdgeBottomZero
-                                                            constant:STATUS_BAR_HEIGHT]];
-    [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:self.titleLabel to:self.park type:EdgeLeftRightZero constant:16]];
-    [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearFixed:self.titleLabel type:SpactecledBearFixedHeight constant:56]];
-    [self.park addConstraints:cons];
-    [cons removeAllObjects];
-    
-    self.park.backgroundColor = [UIColor CRColorType:CRColorTypeGoogleYellow];
-    [self.park makeShadowWithSize:CGSizeMake(0, 1) opacity:0.27 radius:1.7];
-    
-    self.titleLabel.alpha = 0;
-    self.titleLabel.textAlignment = NSTextAlignmentCenter;
-    self.titleLabel.textColor = [UIColor whiteColor];
-    self.titleLabel.font = [CRSettings appFontOfSize:19];
-    self.titleLabel.text = self.title;
+    [CRLayout view:@[ self.titleLabel, self.park ] type:CREdgeBottom constants:UIEdgeInsetsMake(0, 0, -STATUS_BAR_HEIGHT, 0)];
+    [CRLayout view:@[ self.titleLabel, self.park ] type:CREdgeLeftRight];
+    [CRLayout view:@[ self.titleLabel ] type:CRFixedHeight constants:UIEdgeInsetsMake(0, 56, 0, 0)];
 }
 
 - (void)doActionButton{
-    NSMutableArray *cons = [NSMutableArray new];
-    self.actionButton = [UIButton new];
-    self.actionButtonAccount = [UIButton new];
-    [self.view addAutolayoutSubviews:@[ self.actionButton, self.actionButtonAccount ]];
-    [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:self.actionButton to:self.view type:EdgeBottomRightZero constant:16]];
-    [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:self.actionButtonAccount to:self.view type:EdgeRightZero constant:16]];
-    [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:self.actionButtonAccount to:self.view type:EdgeBottomZero
-                                                            constant:16 + 56 + 16]];
-    [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearFixed:self.actionButtonAccount type:SpactecledBearFixedEqual constant:56]];
-    [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearFixed:self.actionButton type:SpactecledBearFixedEqual constant:56]];
-    [self.view addConstraints:cons];
-    [cons removeAllObjects];
     
-    self.actionButton.layer.cornerRadius = self.actionButtonAccount.layer.cornerRadius = 56 / 2.0f;
-    self.actionButton.titleLabel.font = [UIFont MaterialDesignIcons];
-    self.actionButtonAccount.titleLabel.font = [CRSettings appFontOfSize:27];
-    self.actionButton.backgroundColor = [UIColor CRColorType:CRColorTypeGoogleTomato];
-    self.actionButtonAccount.backgroundColor = [UIColor CRColorType:CRColorTypeGoogleYellow];
-    [self.actionButton makeShadowWithSize:CGSizeMake(0.0f, 1.7f) opacity:0.3f radius:1.7f];
-    [self.actionButtonAccount makeShadowWithSize:CGSizeMake(0.0f, 1.7f) opacity:0.3f radius:1.7f];
-    [self.actionButtonAccount addTarget:self action:@selector(CRAccountsViewController) forControlEvents:UIControlEventTouchUpInside];
-    [self.actionButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-    [self.actionButtonAccount setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-    [self.actionButton setTitle:[UIFont mdiPlus] forState:UIControlStateNormal];
-    [self.actionButtonAccount setTitle:@"C" forState:UIControlStateNormal];
-    [self.actionButton addTarget:self action:@selector(CRClassAddViewController) forControlEvents:UIControlEventTouchUpInside];
+    self.actionButton = ({
+        UIButton *button = [UIButton new];
+        button.layer.cornerRadius = self.actionButtonAccount.layer.cornerRadius = 56 / 2.0f;
+        button.titleLabel.font = [UIFont MaterialDesignIcons];
+        button.backgroundColor = [UIColor CRColorType:CRColorTypeGoogleTomato];
+        [button makeShadowWithSize:CGSizeMake(0.0f, 1.7f) opacity:0.3f radius:1.7f];
+        [button setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+        [button setTitle:[UIFont mdiPlus] forState:UIControlStateNormal];
+        [button addTarget:self action:@selector(CRClassAddViewController) forControlEvents:UIControlEventTouchUpInside];
+        button;
+    });
+    
+    self.actionButtonAccount = ({
+        UIButton *button = [UIButton new];
+        button.layer.cornerRadius = 56 / 2.0f;
+        button.titleLabel.font = [CRSettings appFontOfSize:27];
+        button.backgroundColor = [UIColor CRColorType:CRColorTypeGoogleYellow];
+        [button makeShadowWithSize:CGSizeMake(0.0f, 1.7f) opacity:0.3f radius:1.7f];
+        [button addTarget:self action:@selector(CRAccountsViewController) forControlEvents:UIControlEventTouchUpInside];
+        [button setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+        [button setTitle:@"C" forState:UIControlStateNormal];
+        button;
+    });
+    
+    [self.view addAutolayoutSubviews:@[ self.actionButtonAccount, self.actionButton ]];
+    [CRLayout view:@[ self.actionButton, self.view ] type:CREdgeBottomRight constants:UIEdgeInsetsMake(0, 0, -16, -16)];
+    [CRLayout view:@[ self.actionButton ] type:CRFixedEqual constants:UIEdgeInsetsMake(56, 56, 0, 0)];
+    [CRLayout view:@[ self.actionButtonAccount, self.view ] type:CREdgeBottomRight constants:UIEdgeInsetsMake(0, 0, -( 32 + 56 ), -16)];
+    [CRLayout view:@[ self.actionButtonAccount ] type:CRFixedEqual constants:UIEdgeInsetsMake(56, 56, 0, 0)];
 }
 
 - (void)doBear{
-    _bear = [[UITableView alloc] initWithFrame:CGRectMake(0, 0, 0, 0) style:UITableViewStyleGrouped];
-    [self.view addAutolayoutSubviews:@[ _bear ]];
-    [self.view bringSubviewToFront:self.actionButton];
-    [self.view bringSubviewToFront:self.park];
-    [self.view addConstraints:[NSLayoutConstraint SpactecledBearEdeg:_bear to:self.view type:EdgeAroundZero]];
-    
-    _bear.sectionHeaderHeight = 142.0f;
-    _bear.sectionFooterHeight = 0;
-    _bear.contentInset = UIEdgeInsetsMake(STATUS_BAR_HEIGHT + 0, 0, 0, 0);
-    _bear.contentOffset = CGPointMake(0, - 0 - STATUS_BAR_HEIGHT);
-    _bear.showsHorizontalScrollIndicator = NO;
-    _bear.showsVerticalScrollIndicator = NO;
-    _bear.backgroundColor = [UIColor whiteColor];
-    _bear.separatorStyle = UITableViewCellSeparatorStyleNone;
-    _bear.delegate = self;
-    _bear.dataSource = self;
+    self.bear = ({
+        UITableView *bear = [[UITableView alloc] initWithFrame:CGRectMake(0, 0, 0, 0) style:UITableViewStyleGrouped];
+        bear.translatesAutoresizingMaskIntoConstraints = NO;
+        bear.sectionFooterHeight = 142.0f;
+        bear.sectionFooterHeight = 0;
+        bear.contentInset = UIEdgeInsetsMake(STATUS_BAR_HEIGHT + 0, 0, 0, 0);
+        bear.contentOffset = CGPointMake(0, - 0 - STATUS_BAR_HEIGHT);
+        bear.showsHorizontalScrollIndicator = NO;
+        bear.showsVerticalScrollIndicator = NO;
+        bear.backgroundColor = [UIColor whiteColor];
+        bear.separatorStyle = UITableViewCellSeparatorStyleNone;
+        bear.delegate = self;
+        bear.dataSource = self;
+        bear;
+    });
+    [self.view addSubview:self.bear];
+    [CRLayout view:@[ self.bear, self.view ] type:CREdgeAround];
 }
 
 - (void)doHeaderViews{
     
     NSMutableArray *views = [NSMutableArray new];
-    NSMutableArray *cons = [NSMutableArray new];
     NSMutableArray *layoutGuide = [NSMutableArray new];
     NSArray *weekdays = @[ @"Monday", @"Tuesday", @"Wednesday", @"Thursday", @"Friday", @"Saturday", @"Sunday" ];
     
@@ -213,13 +226,25 @@
     UILabel *weekday;
     NSLayoutConstraint *con;
     for( int fox = 0; fox < 7; fox++ ){
-        wrapper = [UIView new]; weekday = [UILabel new];
+        
+        wrapper = ({
+            UIView *wrapper = [UIView new];
+            wrapper.clipsToBounds = YES;
+            wrapper;
+        });
+        
+        weekday = ({
+            UILabel *weekday = [UILabel new];
+            weekday.text = weekdays[fox];
+            weekday.font = [CRSettings appFontOfSize:25];
+            weekday;
+        });
+        
         imageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:[NSString stringWithFormat:@"M%d.jpg", fox + 3]]];
+        
         [wrapper addAutolayoutSubviews:@[ imageView, weekday ]];
-        [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:weekday to:wrapper type:EdgeLeftRightZero constant:56]];
-        [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:weekday to:wrapper type:EdgeTopZero constant:8]];
-        [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearFixed:weekday type:SpactecledBearFixedHeight constant:56]];
-        [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:imageView to:wrapper type:EdgeLeftRightZero]];
+        [CRLayout view:@[ weekday, wrapper ] type:CREdgeAround constants:UIEdgeInsetsMake(8, 56, -78, -56)];
+        [CRLayout view:@[ imageView, wrapper ] type:CREdgeLeftRight];
         con = [NSLayoutConstraint constraintWithItem:imageView
                                            attribute:NSLayoutAttributeTop
                                            relatedBy:NSLayoutRelationEqual
@@ -227,22 +252,15 @@
                                            attribute:NSLayoutAttributeTop
                                           multiplier:1.0
                                             constant:-30];
-        if( fox == 1 ) self.testLayout = con;
         con.identifier = [NSString stringWithFormat:@"%d", fox];
-        [cons addObject:con];
-        [cons addObject:[NSLayoutConstraint constraintWithItem:imageView
-                                                     attribute:NSLayoutAttributeWidth
-                                                     relatedBy:NSLayoutRelationEqual
-                                                        toItem:imageView
-                                                     attribute:NSLayoutAttributeHeight
-                                                    multiplier:1.0
-                                                      constant:0]];
-    
-        [wrapper addConstraints:cons];
-        [cons removeAllObjects];
-        wrapper.clipsToBounds = YES;
-        weekday.text = weekdays[fox];
-        weekday.font = [CRSettings appFontOfSize:25];
+        [wrapper addConstraint:con];
+        [wrapper addConstraint:[NSLayoutConstraint constraintWithItem:imageView
+                                                            attribute:NSLayoutAttributeWidth
+                                                            relatedBy:NSLayoutRelationEqual
+                                                               toItem:imageView
+                                                            attribute:NSLayoutAttributeHeight
+                                                           multiplier:1.0
+                                                             constant:0]];
         
         [views addObject:wrapper];
         [layoutGuide addObject:con];
@@ -378,23 +396,34 @@
 
 - (void)animationFloatingButton:(UIView *)view{
     if( self.CAAnimationFlag ) return;
+    
     self.CAAnimationFlag = YES;
     
-    CAKeyframeAnimation *animation = [CAKeyframeAnimation animationWithKeyPath:@"transform.scale"];
-    animation.values = @[ @1.0, @1.3, @1.0 ];
-    CABasicAnimation *r = [CABasicAnimation animationWithKeyPath:@"transform.rotation"];
-    r.fromValue = [NSNumber numberWithFloat:0];
-    r.toValue = [NSNumber numberWithFloat:M_PI];
+    CAKeyframeAnimation *scaleAnimation = ({
+        CAKeyframeAnimation *animation = [CAKeyframeAnimation animationWithKeyPath:@"transform.scale"];
+        animation.values = @[ @1.0, @1.5, @1.0 ];
+        animation;
+    });
     
-    CAAnimationGroup *group = [CAAnimationGroup animation];
-    group.timingFunction = [CAMediaTimingFunction functionWithControlPoints:0.4 :0 :0.2 :1];
-    group.duration = 1.0f;
-    group.removedOnCompletion = YES;
-    group.animations = @[ animation, r ];
+    CABasicAnimation *rotationAnimation = ({
+        CABasicAnimation *animation = [CABasicAnimation animationWithKeyPath:@"transform.rotation"];
+        animation.fromValue = [NSNumber numberWithFloat:0];
+        animation.toValue = [NSNumber numberWithFloat:M_PI];
+        animation;
+    });
     
-    group.delegate = self;
+    CAAnimationGroup *attention = ({
+        CAAnimationGroup *group = [CAAnimationGroup animation];
+        group.timingFunction = [CAMediaTimingFunction functionWithControlPoints:0.4 :0 :0.2 :1];
+        group.duration = 1.0f;
+        group.removedOnCompletion = YES;
+        group.animations = @[ scaleAnimation, rotationAnimation ];
+        group;
+    });
     
-    [view.layer addAnimation:group forKey:@"jey"];
+    attention.delegate = self;
+    
+    [view.layer addAnimation:attention forKey:@"attention"];
 }
 
 - (void)animationDidStop:(CAAnimation *)anim finished:(BOOL)flag{

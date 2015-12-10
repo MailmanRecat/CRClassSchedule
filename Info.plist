@@ -4,6 +4,8 @@
 <dict>
 	<key>UIAppFonts</key>
 	<array>
+		<string>Roboto-Bold.ttf</string>
+		<string>Roboto-Light.ttf</string>
 		<string>materialdesignicons-webfont.ttf</string>
 	</array>
 	<key>CFBundleDevelopmentRegion</key>

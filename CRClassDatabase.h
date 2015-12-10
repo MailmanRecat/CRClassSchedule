@@ -10,6 +10,14 @@
 #import "CRClassSchedule.h"
 #import "CRClassAccount.h"
 
+static NSString *const CRSUNDAY = @"sunday";
+static NSString *const CRMONDAY = @"monday";
+static NSString *const CRTUESDAY = @"tuesday";
+static NSString *const CRWEDNESDAY = @"wednesday";
+static NSString *const CRTHURSDAY = @"thursday";
+static NSString *const CRFRIDAT = @"friday";
+static NSString *const CRSATURDAY = @"saturday";
+
 @interface CRClassDatabase : NSObject
 
 //test
@@ -18,8 +26,10 @@
 //CRClassSchedule Database func start
 + (BOOL)dropCRClassScheduleFromUser:(NSString *)user;
 + (BOOL)insertCRClassSchedule:(CRClassSchedule *)schedule;
++ (BOOL)updateCRClassSchedule:(CRClassSchedule *)schedule;
 + (BOOL)deleteCRClassSchedule:(CRClassSchedule *)schedule;
 + (NSArray *)selectCRClassScheduleFromUser:(NSString *)user;
++ (CRClassSchedule *)CRClassScheduleFromRow:(NSArray *)row;
 //CRClassSchedule Databse func end
 
 //CRClassAccount Database func start
