@@ -16,7 +16,15 @@ typedef NS_ENUM(NSUInteger, CRViewModel){
     CRViewModelEdit
 };
 
+@protocol CRClassAddViewControllerPreviewActionHandler <NSObject>
+
+- (void)CRClassAddPreviewAction:(NSString *)type fromController:(UIViewController *)controller;
+
+@end
+
 @interface CRClassAddViewController : UIViewController
+
+@property( nonatomic, weak ) id<CRClassAddViewControllerPreviewActionHandler> previewActionHandler;
 
 @property( nonatomic, strong ) CRClassSchedule *classSchedule;
 @property( nonatomic, assign ) CRViewModel model;

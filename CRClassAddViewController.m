@@ -33,10 +33,6 @@
 
 @property( nonatomic, strong ) CRTransitionAnimationObject *transitionObject;
 
-@property( nonatomic, strong ) UIView *peak;
-@property( nonatomic, strong ) HuskyButton *closeButton;
-@property( nonatomic, strong ) UILabel *peakTitle;
-
 @property( nonatomic, strong ) UIView *park;
 @property( nonatomic, strong ) UILabel *parkTitle;
 @property( nonatomic, strong ) HuskyButton *dismissButton;
@@ -47,6 +43,7 @@
 @property( nonatomic, strong ) UIView *bottomBear;
 @property( nonatomic, strong ) NSLayoutConstraint *bottomBearLayoutGuide;
 @property( nonatomic, strong ) UIButton *saveButton;
+@property( nonatomic, strong ) UIButton *deleteButton;
 
 @property( nonatomic, strong ) UIScrollView *bear;
 @property( nonatomic, strong ) NSLayoutConstraint *bearBottomLayoutGuide;
@@ -102,8 +99,6 @@
     
     static dispatch_once_t instanceVCMaker;
     dispatch_once(&instanceVCMaker, ^{
-//        instanceVC = [[CRClassAddViewController alloc] initFromClassSchedule:classSchedule];
-//        instanceVC.shouldRender = YES;
         instanceVC = [[CRClassAddViewController alloc] initFromClassSchedule:classSchedule viewModel:CRViewModelDefault];
     });
     return instanceVC;
@@ -123,43 +118,47 @@
     [self doPark];
     [self doBottomBear];
     
-//    self.park.alpha = 0;
+    if( self.model == CRViewModelDefault ){
+        
+    }
     
     [self addNotificationObserver];
 }
 
 -(NSArray<id<UIPreviewActionItem>> *)previewActionItems {
     
-    UIPreviewAction *deleteAction = [UIPreviewAction actionWithTitle:@"Delete" style:UIPreviewActionStyleDestructive handler:^(UIPreviewAction * _Nonnull action, UIViewController * _Nonnull previewViewController) {
+    UIPreviewAction *deleteAction = [UIPreviewAction actionWithTitle:@"Delete" style:UIPreviewActionStyleDestructive handler:^(UIPreviewAction * _Nonnull action, UIViewController * _Nonnull previewController) {
         
-        NSLog(@"action handler");
+        if( self.previewActionHandler && [self.previewActionHandler respondsToSelector:@selector(CRClassAddPreviewAction:fromController:)] ){
+            [self.previewActionHandler CRClassAddPreviewAction:action.title fromController:previewController];
+        }
         
     }];
     
-    UIPreviewAction *editAction = [UIPreviewAction actionWithTitle:@"Edit Class" style:UIPreviewActionStyleDefault handler:^( UIPreviewAction * _Nonnull action, UIViewController * _Nonnull previewViewController ){
+    UIPreviewAction *cancel = [UIPreviewAction actionWithTitle:@"Cancel" style:UIPreviewActionStyleDefault handler:^(UIPreviewAction * _Nonnull action, UIViewController * _Nonnull previewController){
         
-        NSLog(@"edit");
+        if( self.previewActionHandler && [self.previewActionHandler respondsToSelector:@selector(CRClassAddPreviewAction:fromController:)] ){
+            [self.previewActionHandler CRClassAddPreviewAction:action.title fromController:previewController];
+        }
     }];
     
-    return @[ editAction, deleteAction ];
+    UIPreviewActionGroup *delete = [UIPreviewActionGroup actionGroupWithTitle:@"Delete" style:UIPreviewActionStyleDestructive actions:@[ deleteAction, cancel ]];
+    
+    UIPreviewAction *editAction = [UIPreviewAction actionWithTitle:@"Edit Class" style:UIPreviewActionStyleDefault handler:^( UIPreviewAction * _Nonnull action, UIViewController * _Nonnull previewController ){
+        
+        if( self.previewActionHandler && [self.previewActionHandler respondsToSelector:@selector(CRClassAddPreviewAction:fromController:)] ){
+            [self.previewActionHandler CRClassAddPreviewAction:action.title fromController:previewController];
+        }
+    }];
+    
+    return @[ editAction, delete ];
 }
 
 - (void)viewWillAppear:(BOOL)animated{
     if( self.isPreview ){
-        self.isPreview = NO;
-        self.dismissButton.hidden = YES;
-        [self.teacher makeBorder:NO];
-        [self.weekday makeBorder:NO];
-        [self.timeLong makeBorder:NO];
-        [self.colorType makeBorder:NO];
-        [self.userInfo makeBorder:NO];
+        
     }else{
-        [self showDismissButton];
-        [self.teacher makeBorder:YES];
-        [self.weekday makeBorder:YES];
-        [self.timeLong makeBorder:YES];
-        [self.colorType makeBorder:YES];
-        [self.userInfo makeBorder:YES];
+        
     }
     
     if( self.isBeingPresented ){
@@ -192,15 +191,7 @@
 
 - (void)addNotificationObserver{
     NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
-    
-//    [center addObserver:self
-//               selector:@selector(willKeyBoardShow:)
-//                   name:UIKeyboardWillShowNotification
-//                 object:nil];
-//    [center addObserver:self
-//               selector:@selector(willKeyBoardHide:)
-//                   name:UIKeyboardWillHideNotification
-//                 object:nil];
+
     [center addObserver:self
                selector:@selector(willKeyBoardChangeFrame:)
                    name:UIKeyboardWillChangeFrameNotification
@@ -240,20 +231,6 @@
     self.classSchedule.timeStart = option;
 }
 
-- (void)willKeyBoardShow:(NSNotification *)keyboardInfo{
-    NSDictionary *info = [keyboardInfo userInfo];
-    CGFloat constant = [[info objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue].size.height;
-    CGFloat duration = [info[UIKeyboardAnimationDurationUserInfoKey] floatValue];
-    UIViewAnimationOptions option = [info[UIKeyboardAnimationCurveUserInfoKey] integerValue];
-    [self layoutSaveButtonDuration:duration options:option constant:constant];
-}
-
-- (void)willKeyBoardHide:(NSNotification *)keyboardInfo{
-    NSDictionary *info = [keyboardInfo userInfo];
-    CGFloat duration = [info[UIKeyboardAnimationDurationUserInfoKey] floatValue];
-    UIViewAnimationOptions option = [info[UIKeyboardAnimationCurveUserInfoKey] integerValue];
-    [self layoutSaveButtonDuration:duration options:option constant:0];
-}
 
 - (void)layoutSaveButtonDuration:(CGFloat)duration options:(UIViewAnimationOptions)options constant:(CGFloat)constant{
     self.bottomBearLayoutGuide.constant = constant;
@@ -291,10 +268,6 @@
     [self layoutSaveButtonDuration:duration options:option constant:constant];
 }
 
-- (void)doPeak{
-    NSMutableArray *cons = [NSMutableArray new];
-}
-
 - (void)parkSunset{
     self.park.layer.shadowOpacity = 0.27;
 }
@@ -304,46 +277,61 @@
 }
 
 - (void)doPark{
-    self.park = [UIView new];
-    self.parkTitle = [UILabel new];
-    HuskyButton *backButton = [HuskyButton new];
-    self.floatButton = [HuskyButton new];
-    [self.view addAutolayoutSubviews:@[ self.park ]];
-    [self.park addAutolayoutSubviews:@[ backButton, self.floatButton, self.parkTitle ]];
-    [self.view CRLayoutCache:[CRLayoutCons Layout:@[ self.view, self.park ] :CRETopLeftRight]];
-    self.parkLayoutHeightGuide = [CRLayoutCons Layout:@[ self.park ] :CRLEqualHeight :(CGFloat[]){ 0, STATUS_BAR_HEIGHT + 56, 1.0 }].firstObject;
+    
+    self.park = ({
+        UIView *park = [UIView new];
+        park.translatesAutoresizingMaskIntoConstraints = NO;
+        [park makeShadowWithSize:CGSizeMake(0, 1) opacity:0 radius:1.7];
+        park;
+    });
+    
+    self.parkTitle = ({
+        UILabel *parkTitle = [UILabel new];
+        parkTitle.text = @"New Class";
+        parkTitle.textColor = [UIColor whiteColor];
+        parkTitle.font = [CRSettings appFontOfSize:21 weight:UIFontWeightMedium];
+        parkTitle;
+    });
+    
+    self.dismissButton = ({
+        HuskyButton *dismiss = [[HuskyButton alloc] initWithFrame:CGRectMake(0, STATUS_BAR_HEIGHT, 56, 56)];
+        dismiss.layer.cornerRadius = 56.0f / 2.0f;
+        dismiss.titleLabel.font = [UIFont MaterialDesignIcons];
+        [dismiss setTitle:[UIFont mdiClose] forState:UIControlStateNormal];
+        [dismiss setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+        [dismiss addTarget:self action:@selector(dismissSelf) forControlEvents:UIControlEventTouchUpInside];
+        dismiss;
+    });
+    
+    self.floatButton = ({
+        HuskyButton *floatButton = [HuskyButton new];
+        floatButton.layer.cornerRadius = 40 / 2.0f;
+        floatButton.backgroundColor = [UIColor CRColorType:CRColorTypeGoogleTomato];
+        floatButton.titleLabel.font = [UIFont MaterialDesignIcons];
+        [floatButton setTitle:[UIFont mdiPencil] forState:UIControlStateNormal];
+        [floatButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+        [floatButton makeShadowWithSize:CGSizeMake(0.0f, 6.0f) opacity:0.47f radius:3.7f];
+        floatButton;
+    });
+    
+    [self.view addSubview:self.park];
+    [CRLayout view:@[ self.park, self.view ] type:CREdgeTopLeftRight];
+    self.parkLayoutHeightGuide = [NSLayoutConstraint constraintWithItem:self.park
+                                                              attribute:NSLayoutAttributeHeight
+                                                              relatedBy:NSLayoutRelationEqual
+                                                                 toItem:nil
+                                                              attribute:NSLayoutAttributeNotAnAttribute
+                                                             multiplier:1.0
+                                                               constant:STATUS_BAR_HEIGHT + 56];
     [self.park addConstraint:self.parkLayoutHeightGuide];
-    [self.view CRLayoutMake];
-    [self.park CRLayoutCache:[CRLayoutCons Layout:@[ self.floatButton, self.park ] :CREBottomLeft :(CGFloat[]){ 0, 0, 20, 16, 1.0 }]];
-    [self.park CRLayoutCache:[CRLayoutCons Layout:@[ self.floatButton ] :CRLEqualHeightWidth :(CGFloat[]){ 40, 40, 1.0 }]];
-    [self.park CRLayoutCache:[CRLayoutCons Layout:@[ self.parkTitle, self.park ] :CREBottomLeftRight
-                                                 :(CGFloat[]){ STATUS_BAR_HEIGHT, -16, 0, 72, 1.0 }]];
-    self.parkLayoutTitleGuide = [CRLayoutCons Layout:@[ self.parkTitle ] :CRLEqualHeight :(CGFloat[]){ 0, 56, 1.0 }].firstObject;
-    [self.parkTitle addConstraint:self.parkLayoutTitleGuide];
-    [self.park CRLayoutCache:[CRLayoutCons Layout:@[ backButton, self.park ] :CRETopLeft
-                                                 :(CGFloat[]){ STATUS_BAR_HEIGHT, 0, 0, 0, 1.0 }]];
-    [self.park CRLayoutCache:[CRLayoutCons Layout:@[ backButton ] :CRLEqualHeightWidth :(CGFloat[]){ 56, 56, 1.0 }]];
-    [self.park CRLayoutMake];
     
-    [self.park makeShadowWithSize:CGSizeMake(0, 1) opacity:0 radius:1.7];
+    [self.park addSubview:self.dismissButton];
+    [self.park addAutolayoutSubviews:@[ self.floatButton, self.parkTitle ]];
     
-    self.parkTitle.text = @"New class event";
-    self.parkTitle.textColor = [UIColor whiteColor];
-    self.parkTitle.font = [CRSettings appFontOfSize:21 weight:UIFontWeightMedium];
-    
-    self.floatButton.layer.cornerRadius = 40 / 2.0f;
-    self.floatButton.backgroundColor = [UIColor CRColorType:CRColorTypeGoogleTomato];
-    self.floatButton.titleLabel.font = [UIFont MaterialDesignIcons];
-    [self.floatButton setTitle:[UIFont mdiPencil] forState:UIControlStateNormal];
-    [self.floatButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-    [self.floatButton makeShadowWithSize:CGSizeMake(0.0f, 6.0f) opacity:0.57f radius:3.7f];
-    
-    backButton.layer.cornerRadius = 56.0f / 2.0f;
-    backButton.titleLabel.font = [UIFont MaterialDesignIcons];
-    [backButton setTitle:[UIFont mdiArrowLeft] forState:UIControlStateNormal];
-    [backButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-    [backButton addTarget:self action:@selector(dismissSelf) forControlEvents:UIControlEventTouchUpInside];
-    self.dismissButton = backButton;
+    [CRLayout view:@[ self.floatButton, self.park ] type:CREdgeBottomLeft constants:UIEdgeInsetsMake(0, 16, 20, 0)];
+    [CRLayout view:@[ self.floatButton ] type:CRFixedEqual constants:UIEdgeInsetsMake(40, 40, 0, 0)];
+    [CRLayout view:@[ self.parkTitle, self.park ] type:CREdgeBottomLeftRight constants:UIEdgeInsetsMake(0, 72, 0, -16)];
+    [CRLayout view:@[ self.parkTitle ] type:CRFixedHeight constants:UIEdgeInsetsMake(0, 56, 0, 0)];
 }
 
 - (void)editModelWithAnimation:(BOOL)animation{
@@ -404,13 +392,40 @@
 }
 
 - (void)doBottomBear{
-    NSMutableArray *cons = [NSMutableArray new];
-    self.bottomBear = [UIView new];
-    [self.view addAutolayoutSubviews:@[ self.bottomBear ]];
-    self.saveButton = [UIButton new];
-    [self.bottomBear addAutolayoutSubviews:@[ self.saveButton ]];
-    [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:self.bottomBear to:self.view type:EdgeLeftRightZero]];
-    [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearFixed:self.bottomBear type:SpactecledBearFixedHeight constant:52]];
+    
+    self.bottomBear = ({
+        UIView *bottomBear = [UIView new];
+        bottomBear.translatesAutoresizingMaskIntoConstraints = NO;
+        bottomBear.backgroundColor = [UIColor whiteColor];
+        [bottomBear makeShadowWithSize:CGSizeMake(0, -1) opacity:0.17 radius:1.7];
+        bottomBear;
+    });
+    
+    self.saveButton = ({
+        UIButton *save = [UIButton new];
+        save.backgroundColor = [UIColor clearColor];
+        save.titleLabel.font = [CRSettings appFontOfSize:17 weight:UIFontWeightMedium];
+        [save setTitle:@"Save" forState:UIControlStateNormal];
+        [save setTitleColor:[CRSettings CRAppColorTypes][[self.classSchedule.colorType lowercaseString]] forState:UIControlStateNormal];
+        [save addTarget:self action:@selector(CRSaveClass) forControlEvents:UIControlEventTouchUpInside];
+        save;
+    });
+    
+    self.deleteButton = ({
+        UIButton *delete = [UIButton new];
+        delete.backgroundColor = [UIColor clearColor];
+        delete.titleLabel.font = [CRSettings appFontOfSize:17 weight:UIFontWeightMedium];
+        [delete setTitle:@"Delete" forState:UIControlStateNormal];
+        [delete setTitleColor:[UIColor CRColorType:CRColorTypeGoogleTomato] forState:UIControlStateNormal];
+        [delete addTarget:self action:@selector(CRSaveClass) forControlEvents:UIControlEventTouchUpInside];
+        delete;
+    });
+    
+    [self.view addSubview:self.bottomBear];
+    [self.bottomBear addAutolayoutSubviews:@[ self.saveButton, self.deleteButton ]];
+    
+    [CRLayout view:@[ self.bottomBear, self.view ] type:CREdgeLeftRight];
+    [CRLayout view:@[ self.bottomBear ] type:CRFixedHeight constants:UIEdgeInsetsMake(0, 52, 0, 0)];
     self.bottomBearLayoutGuide = [NSLayoutConstraint constraintWithItem:self.view
                                                               attribute:NSLayoutAttributeBottom
                                                               relatedBy:NSLayoutRelationEqual
@@ -418,30 +433,26 @@
                                                               attribute:NSLayoutAttributeBottom
                                                              multiplier:1.0
                                                                constant:0];
-    [cons addObject:self.bottomBearLayoutGuide];
-    [self.view addConstraints:cons];
-    [cons removeAllObjects];
-    [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:self.saveButton to:self.bottomBear type:EdgeTopBottomZero constant:8]];
-    [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:self.saveButton to:self.bottomBear type:EdgeRightZero constant:8]];
-    [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearFixed:self.saveButton type:SpactecledBearFixedWidth constant:72]];
-    [self.bottomBear addConstraints:cons];
-    [cons removeAllObjects];
+    [self.view addConstraint:self.bottomBearLayoutGuide];
     
-    self.bottomBear.backgroundColor = [UIColor whiteColor];
-    [self.bottomBear makeShadowWithSize:CGSizeMake(0, -1) opacity:0.17 radius:1.7];
-    
-    self.saveButton.backgroundColor = [UIColor clearColor];
-    self.saveButton.titleLabel.font = [CRSettings appFontOfSize:17 weight:UIFontWeightMedium];
-    [self.saveButton setTitle:@"Save" forState:UIControlStateNormal];
-    [self.saveButton setTitleColor:[CRSettings CRAppColorTypes][[self.classSchedule.colorType lowercaseString]] forState:UIControlStateNormal];
-    [self.saveButton addTarget:self action:@selector(CRSaveClass) forControlEvents:UIControlEventTouchUpInside];
+    [CRLayout view:@[ self.saveButton, self.bottomBear ] type:CREdgeTopRightBottom constants:UIEdgeInsetsMake(8, 0, 8, -8)];
+    [CRLayout view:@[ self.saveButton ] type:CRFixedWidth constants:UIEdgeInsetsMake(72, 0, 0, 0)];
+    [CRLayout view:@[ self.deleteButton, self.bottomBear ] type:CREdgeTopLeftBottom constants:UIEdgeInsetsMake(8, 8, 8, 0)];
+    [CRLayout view:@[ self.deleteButton ] type:CRFixedWidth constants:UIEdgeInsetsMake(72, 0, 0, 0)];
 }
 
 - (void)doBear{
-    NSMutableArray *cons = [NSMutableArray new];
-    self.bear = [UIScrollView new];
-    [self.view addAutolayoutSubviews:@[ self.bear ]];
-    [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:self.bear to:self.view type:EdgeTopLeftRightZero]];
+    
+    self.bear = ({
+        UIScrollView *bear = [UIScrollView new];
+        bear.translatesAutoresizingMaskIntoConstraints = NO;
+        bear.showsHorizontalScrollIndicator = NO;
+        bear.showsVerticalScrollIndicator = NO;
+        bear.delegate = self;
+        bear;
+    });
+    [self.view addSubview:self.bear];
+    [CRLayout view:@[ self.bear, self.view ] type:CREdgeTopLeftRight];
     self.bearBottomLayoutGuide = [NSLayoutConstraint constraintWithItem:self.view
                                                               attribute:NSLayoutAttributeBottom
                                                               relatedBy:NSLayoutRelationEqual
@@ -450,21 +461,70 @@
                                                              multiplier:1.0
                                                                constant:0];
     [self.view addConstraint:self.bearBottomLayoutGuide];
-    [self.view addConstraints:cons];
-    [cons removeAllObjects];
     
-    self.bear.showsVerticalScrollIndicator = NO;
-    self.bear.delegate = self;
+    self.classname = ({
+        CRTextFieldView *classname = [[CRTextFieldView alloc] initWithoutIcon];
+        classname.placeholder = @"Class name";
+        classname;
+    });
     
-    self.classname = [[CRTextFieldView alloc] initWithoutIcon];
-    self.timeStart = [CRButtonView new];
-    self.location = [CRButtonView new];
-    self.teacher = [CRTextFieldView new];
-    self.weekday = [CRButtonView new];
-    self.timeLong = [CRButtonView new];
-    self.colorType = [CRButtonView new];
-    self.userInfo = [CRTextView new];
-    UIView *edgeBottom = [UIView new];
+    self.timeStart = ({
+        CRButtonView *timeStart = [CRButtonView new];
+        timeStart.icon.text = [UIFont mdiBell];
+        [timeStart addTarget:self action:@selector(CRTimeOptionsViewController) forControlEvents:UIControlEventTouchUpInside];
+        timeStart;
+    });
+    
+    self.location = ({
+        CRButtonView *location = [CRButtonView new];
+        location.icon.text = [UIFont mdiMapMarker];
+        [location addTarget:self action:@selector(CRTextFieldViewController) forControlEvents:UIControlEventTouchUpInside];
+        location;
+    });
+    
+    self.teacher = ({
+        CRTextFieldView *teacher = [CRTextFieldView new];
+        teacher.delegate = self;
+        teacher.icon.text = [UIFont mdiAccount];
+        teacher;
+    });
+    
+    self.weekday = ({
+        CRButtonView *weekday = [CRButtonView new];
+        weekday.icon.text = [UIFont mdiCalendar];
+        [weekday addTarget:self action:@selector(CRWeekdayViewController) forControlEvents:UIControlEventTouchUpInside];
+        weekday;
+    });
+    
+    self.timeLong = ({
+        CRButtonView *timeLong = [CRButtonView new];
+        timeLong.icon.text = [UIFont mdiClock];
+        [timeLong addTarget:self action:@selector(CRTimeOptionViewController) forControlEvents:UIControlEventTouchUpInside];
+        timeLong;
+    });
+    
+    self.colorType = ({
+        CRButtonView *colorType = [CRButtonView new];
+        colorType.icon.text = [UIFont mdiCheckboxBlankCircle];
+        [colorType addTarget:self action:@selector(CRColorPickerViewController) forControlEvents:UIControlEventTouchUpInside];
+        colorType;
+    });
+    
+    self.userInfo = ({
+        CRTextView *userInfo = [CRTextView new];
+        userInfo.icon.text = [UIFont mdiPencil];
+        userInfo.textView.delegate = self;
+        userInfo.textView.font = [CRSettings appFontOfSize:17];
+        userInfo.textView.textColor = [UIColor colorWithWhite:117 / 255.0 alpha:1];
+        userInfo;
+    });
+    
+    UIView *edgeBottom = ({
+        UIView *edge = [UIView new];
+        edge.backgroundColor = [UIColor clearColor];
+        edge;
+    });
+    
     [self.bear autolayoutSubviews:@[ self.classname, self.timeStart, self.location, self.teacher, self.weekday, self.timeLong, self.colorType, self.userInfo, edgeBottom ]
                        edgeInsets:UIEdgeInsetsMake(STATUS_BAR_HEIGHT + 56, 0, 0, 0)
                        multiplier:1.0
@@ -474,29 +534,6 @@
                         direction:autolayoutStackDirectionTop
                            option:autolayoutStackOptionTrailing];
     
-    self.classname.placeholder = @"Class name";
-    self.timeStart.icon.text = [UIFont mdiBell];
-    [self.timeStart addTarget:self action:@selector(CRTimeOptionsViewController) forControlEvents:UIControlEventTouchUpInside];
-    
-    self.location.icon.text = [UIFont mdiMapMarker];
-    [self.location addTarget:self action:@selector(CRTextFieldViewController) forControlEvents:UIControlEventTouchUpInside];
-    
-    self.teacher.delegate = self;
-    self.teacher.icon.text = [UIFont mdiAccount];
-    
-    self.weekday.icon.text = [UIFont mdiCalendar];
-    [self.weekday addTarget:self action:@selector(CRWeekdayViewController) forControlEvents:UIControlEventTouchUpInside];
-    
-    self.timeLong.icon.text = [UIFont mdiClock];
-    [self.timeLong addTarget:self action:@selector(CRTimeOptionViewController) forControlEvents:UIControlEventTouchUpInside];
-    
-    self.colorType.icon.text = [UIFont mdiCheckboxBlankCircle];
-    [self.colorType addTarget:self action:@selector(CRColorPickerViewController) forControlEvents:UIControlEventTouchUpInside];
-    
-    self.userInfo.icon.text = [UIFont mdiPencil];
-    self.userInfo.textView.delegate = self;
-    self.userInfo.textView.font = [CRSettings appFontOfSize:17];
-    self.userInfo.textView.textColor = [UIColor colorWithWhite:117 / 255.0 alpha:1];
 }
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView{
@@ -546,64 +583,54 @@
 }
 
 - (void)CRTimeOptionViewController{
-    CRTimeOptionViewController *timeOption  = [CRTimeOptionViewController new];
-    timeOption.transitioningDelegate = self.transitionObject;
-    timeOption.handler = self;
+    
+    NSDictionary *timeMap = @{
+                              @"5 mins": @0,
+                              @"10 mins": @1,
+                              @"15 mins": @2,
+                              @"20 mins": @3,
+                              @"25 mins": @4,
+                              @"30 mins": @5,
+                              @"35 mins": @6,
+                              @"40 mins": @7,
+                              @"45 mins": @8,
+                              @"50 mins": @9,
+                              @"55 mins": @10,
+                              @"1 hour": @11,
+                              @"1 hour 10 mins": @12,
+                              @"1 hour 20 mins": @13,
+                              @"1 hour 30 mins": @14,
+                              @"1 hour 40 mins": @15,
+                              @"1 hour 50 mins": @16,
+                              @"2 hours": @17,
+                              @"2 hours 30 mins": @18,
+                              @"3 hours": @19,
+                              };
     
     NSString *minString = self.timeLong.textLabel.text;
-    if( [minString isEqualToString:@"5 mins"] )
-        timeOption.mins = 0;
-    else if( [minString isEqualToString:@"10 mins"] )
-        timeOption.mins = 1;
-    else if( [minString isEqualToString:@"15 mins"] )
-        timeOption.mins = 2;
-    else if( [minString isEqualToString:@"20 mins"] )
-        timeOption.mins = 3;
-    else if( [minString isEqualToString:@"25 mins"] )
-        timeOption.mins = 4;
-    else if( [minString isEqualToString:@"30 mins"] )
-        timeOption.mins = 5;
-    else if( [minString isEqualToString:@"35 mins"] )
-        timeOption.mins = 6;
-    else if( [minString isEqualToString:@"40 mins"] )
-        timeOption.mins = 7;
-    else if( [minString isEqualToString:@"45 mins"] )
-        timeOption.mins = 8;
-    else if( [minString isEqualToString:@"50 mins"] )
-        timeOption.mins = 9;
-    else if( [minString isEqualToString:@"55 mins"] )
-        timeOption.mins = 10;
-    else if( [minString isEqualToString:@"1 hour"] )
-        timeOption.mins = 11;
-    else if( [minString isEqualToString:@"1 hour 10 mins"] )
-        timeOption.mins = 12;
-    else if( [minString isEqualToString:@"1 hour 20 mins"] )
-        timeOption.mins = 13;
-    else if( [minString isEqualToString:@"1 hour 30 mins"] )
-        timeOption.mins = 14;
-    else if( [minString isEqualToString:@"1 hour 40 mins"] )
-        timeOption.mins = 15;
-    else if( [minString isEqualToString:@"1 hour 50 mins"] )
-        timeOption.mins = 16;
-    else if( [minString isEqualToString:@"2 hours"] )
-        timeOption.mins = 17;
-    else if( [minString isEqualToString:@"2 hours 30 mins"] )
-        timeOption.mins = 18;
-    else if( [minString isEqualToString:@"3 hours"] )
-        timeOption.mins = 19;
-    else
-        timeOption.mins = 0;
+    CRTimeOptionViewController *timeOption = ({
+        CRTimeOptionViewController *timeOption  = [CRTimeOptionViewController new];
+        timeOption.transitioningDelegate = self.transitionObject;
+        timeOption.handler = self;
+        timeOption.type = CRTimeOptionTypeClassmins;
+        timeOption.mins = timeMap[ minString ] ? [timeMap[ minString ] integerValue] : 0;
+        timeOption;
+    });
     
-    timeOption.type = CRTimeOptionTypeClassmins;
     [self presentViewController:timeOption animated:YES completion:nil];
 }
 
 - (void)CRWeekdayViewController{
-    CRTimeOptionViewController *weekdayOption = [CRTimeOptionViewController new];
-    weekdayOption.transitioningDelegate = self.transitionObject;
-    weekdayOption.handler = self;
-    weekdayOption.weekday = [CRSettings weekdayFromString:self.weekday.textLabel.text];
-    weekdayOption.type = CRTimeOptionTypeWeekday;
+    
+    CRTimeOptionViewController *weekdayOption = ({
+        CRTimeOptionViewController *weekdayOption = [CRTimeOptionViewController new];
+        weekdayOption.transitioningDelegate = self.transitionObject;
+        weekdayOption.handler = self;
+        weekdayOption.weekday = [CRSettings weekdayFromString:self.weekday.textLabel.text];
+        weekdayOption.type = CRTimeOptionTypeWeekday;
+        weekdayOption;
+    });
+    
     [self presentViewController:weekdayOption animated:YES completion:nil];
 }
 
@@ -630,18 +657,18 @@
         [self.userInfo.textView resignFirstResponder];
     }
     
-//    self.classSchedule.userInfo = self.userInfo.textView.text;
-//    self.classSchedule.teacher = self.teacher.text;
-//    NSLog(@"%@", self.classSchedule.user);
-//    NSLog(@"%@", self.classSchedule.weekday);
-//    NSLog(@"%@", self.classSchedule.timeStart);
-//    NSLog(@"%@", self.classSchedule.location);
-//    NSLog(@"%@", self.classSchedule.classname);
-//    NSLog(@"%@", self.classSchedule.teacher);
-//    NSLog(@"%@", self.classSchedule.timeLong);
-//    NSLog(@"%@", self.classSchedule.colorType);
-//    NSLog(@"%@", self.classSchedule.userInfo);
-//    NSLog(@"%@", self.classSchedule.type);
+    self.classSchedule.userInfo = self.userInfo.textView.text;
+    self.classSchedule.teacher = self.teacher.text;
+    NSLog(@"%@", self.classSchedule.user);
+    NSLog(@"%@", self.classSchedule.weekday);
+    NSLog(@"%@", self.classSchedule.timeStart);
+    NSLog(@"%@", self.classSchedule.location);
+    NSLog(@"%@", self.classSchedule.classname);
+    NSLog(@"%@", self.classSchedule.teacher);
+    NSLog(@"%@", self.classSchedule.timeLong);
+    NSLog(@"%@", self.classSchedule.colorType);
+    NSLog(@"%@", self.classSchedule.userInfo);
+    NSLog(@"%@", self.classSchedule.type);
 }
 
 - (void)dismissSelf{

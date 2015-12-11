@@ -48,19 +48,23 @@
 }
 
 - (void)makeBear{
-    self.bear = [[UITableView alloc] initWithFrame:CGRectMake(0, 0, 0, 0) style:UITableViewStylePlain];
-    [self.view addAutolayoutSubviews:@[ self.bear ]];
-    [self.view addConstraints:[CRLayoutCons Layout:@[ self.bear, self.view ] :CREAround]];
-    
-    _bear.sectionFooterHeight = 0;
-    _bear.contentInset = UIEdgeInsetsMake(STATUS_BAR_HEIGHT + 56 + 72 + 20, 0, 0, 0);
-    _bear.contentOffset = CGPointMake(0, - 0 - STATUS_BAR_HEIGHT);
-    _bear.showsHorizontalScrollIndicator = NO;
-    _bear.showsVerticalScrollIndicator = NO;
-    _bear.backgroundColor = [UIColor whiteColor];
-    _bear.separatorStyle = UITableViewCellSeparatorStyleNone;
-    _bear.delegate = self;
-    _bear.dataSource = self;
+   
+    self.bear = ({
+        UITableView *bear = [[UITableView alloc] initWithFrame:CGRectMake(0, 0, 0, 0) style:UITableViewStylePlain];
+        bear.translatesAutoresizingMaskIntoConstraints = NO;
+        bear.sectionFooterHeight = 0;
+        bear.contentInset = UIEdgeInsetsMake(STATUS_BAR_HEIGHT + 56 + 72 + 20, 0, 0, 0);
+        bear.contentOffset = CGPointMake(0, - 0 - STATUS_BAR_HEIGHT);
+        bear.showsHorizontalScrollIndicator = NO;
+        bear.showsVerticalScrollIndicator = NO;
+        bear.backgroundColor = [UIColor whiteColor];
+        bear.separatorStyle = UITableViewCellSeparatorStyleNone;
+        bear.delegate = self;
+        bear.dataSource = self;
+        bear;
+    });
+    [self.view addSubview:self.bear];
+    [CRLayout view:@[ self.bear, self.view ] type:CREdgeAround];
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section{

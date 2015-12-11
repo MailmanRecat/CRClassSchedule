@@ -66,7 +66,7 @@
         self.className.textColor = self.location.textColor = [UIColor whiteColor];
         self.wrapper.layer.cornerRadius = 3.0f;
         self.className.font = [CRSettings appFontOfSize:17 weight:UIFontWeightMedium];
-        self.location.font = [CRSettings appFontOfSize:14 weight:UIFontWeightThin];
+        self.location.font = [CRSettings appFontOfSize:14];
     }
     return self;
 }
@@ -134,9 +134,9 @@
     [cons addObject:layoutGuide];
     self.bottomLayoutGuide = [[NSArray alloc] initWithArray:cons];
     
-    [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:self.startTime to:self.contentView type:EdgeLeftZero constant:16]];
-    [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearFixed:self.startTime type:SpactecledBearFixedWidth constant:72]];
-    [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:self.wrapper to:self.contentView type:EdgeRightZero constant:16]];
+    [CRLayout view:@[ self.startTime, self.contentView ] type:CREdgeLeft constants:UIEdgeInsetsMake(0, 16, 0, 0)];
+    [CRLayout view:@[ self.startTime ] type:CRFixedWidth constants:UIEdgeInsetsMake(72, 0, 0, 0)];
+    [CRLayout view:@[ self.wrapper, self.contentView ] type:CREdgeRight constants:UIEdgeInsetsMake(0, 0, 0, -16)];
     [cons addObject:[NSLayoutConstraint constraintWithItem:self.wrapper
                                                  attribute:NSLayoutAttributeLeft
                                                  relatedBy:NSLayoutRelationEqual
@@ -146,14 +146,11 @@
                                                   constant:0]];
     [self.contentView addConstraints:cons];
     [cons removeAllObjects];
-    [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:self.className to:self.wrapper type:EdgeTopZero constant:4]];
-    [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearFixed:self.className type:SpactecledBearFixedHeight constant:classNameHeight]];
-    [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:self.className to:self.wrapper type:EdgeLeftRightZero constant:8]];
-    [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:self.location to:self.wrapper type:EdgeTopZero constant:4 + classNameHeight]];
-    [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:self.location to:self.wrapper type:EdgeLeftRightZero constant:8]];
-    [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearFixed:self.location type:SpactecledBearFixedHeight constant:classNameHeight]];
-    [self.wrapper addConstraints:cons];
-    [cons removeAllObjects];
+    
+    [CRLayout view:@[ self.className, self.wrapper ] type:CREdgeTopLeftRight constants:UIEdgeInsetsMake(4, 8, 0, -8)];
+    [CRLayout view:@[ self.className ] type:CRFixedHeight constants:UIEdgeInsetsMake(0, classNameHeight, 0, 0)];
+    [CRLayout view:@[ self.location, self.wrapper ] type:CREdgeTopLeftRight constants:UIEdgeInsetsMake(4 + classNameHeight, 8, 0, -8)];
+    [CRLayout view:@[ self.location ] type:CRFixedHeight constants:UIEdgeInsetsMake(0, classNameHeight, 0, 0)];
 }
 
 - (void)layoutSubviews{
