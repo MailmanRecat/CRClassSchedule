@@ -17,6 +17,7 @@
 - (instancetype)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier{
     self = [super initWithStyle:style reuseIdentifier:CRFuckCellID];
     if( self ){
+        self.selectionStyle = UITableViewCellSelectionStyleNone;
         self.icon = [UILabel new];
         self.nameLabel = [UILabel new];
         [self.contentView addAutolayoutSubviews:@[ self.icon, self.nameLabel ]];

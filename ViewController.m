@@ -21,6 +21,7 @@
 
 #import "CRTransitionAnimationObject.h"
 #import "CRAccountsViewController.h"
+#import "CRClassScheduleAddViewController.h"
 #import "CRClassAddViewController.h"
 
 #import "CRTestFunction.h"
@@ -106,9 +107,10 @@
 }
 
 - (void)previewingContext:(id<UIViewControllerPreviewing>)previewingContext commitViewController:(UIViewController *)viewControllerToCommit{
-    NSLog(@"pressing");
-    CRClassAddViewController *ClassAddVC = (CRClassAddViewController *)viewControllerToCommit;
-    [ClassAddVC showDismissButton];
+    
+    CRClassAddViewController *CRClassAddVC = (CRClassAddViewController *)viewControllerToCommit;
+    CRClassAddVC.isPreview = NO;
+    
     [self presentViewController:viewControllerToCommit animated:YES completion:nil];
 }
 
@@ -122,8 +124,15 @@
     previewingContext.sourceRect = cell.frame;
 
     CRClassSchedule *schedule = [CRTestFunction scheduleFromNSArray:self.testData[indexPath.section][indexPath.row]];
-    CRClassAddViewController *CRClassAddVC = [CRClassAddViewController shareFromClassSchedule:schedule];
-    CRClassAddVC.isPreview = YES;
+    
+    CRClassAddViewController *CRClassAddVC = ({
+        CRClassAddViewController *CRClassAddVC = [CRClassAddViewController new];
+        CRClassAddVC.model = CRViewModelDefault;
+        CRClassAddVC.isPreview = YES;
+        CRClassAddVC.classSchedule = schedule;
+        CRClassAddVC;
+    });
+    
     return CRClassAddVC;
 }
 
@@ -296,7 +305,7 @@
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath{
-    
+
     CRClassTableViewCell *CRCell;
     if( [self.testData[indexPath.section] count] == 0 ){
         CRCell = [tableView dequeueReusableCellWithIdentifier:CRClassCellNoClassID];
@@ -383,10 +392,19 @@
 
 - (void)CRClassAddViewController{
     CRClassSchedule *schedule = [CRClassSchedule ClassCreateTempleSchedule];
-    CRClassAddViewController *CRClassAddVC = [CRClassAddViewController shareFromClassSchedule:schedule];
     
-    CRClassAddVC.isPreview = NO;
-    [self presentViewController:CRClassAddVC animated:YES completion:nil];
+    CRClassAddViewController *CRClassAddVC = ({
+        CRClassAddViewController *CRClassAddVC = [CRClassAddViewController new];
+        CRClassAddVC.model = CRViewModelDefault;
+        CRClassAddVC.isPreview = NO;
+        CRClassAddVC.classSchedule = schedule;
+        CRClassAddVC;
+    });
+    
+    CRClassScheduleAddViewController *CRClassScheduleAdd = [CRClassScheduleAddViewController new];
+    CRClassScheduleAdd.classSchedule = schedule;
+    
+    [self presentViewController:CRClassScheduleAdd animated:YES completion:nil];
 }
 
 - (void)CRAccountsViewController{
