@@ -14,11 +14,16 @@
 - (instancetype)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier{
     self = [super initWithStyle:style reuseIdentifier:reuseIdentifier];
     if( self ){
-        self.timeLabel = [UILabel new];
-        [self.contentView addAutolayoutSubviews:@[ self.timeLabel ]];
-        [self.contentView addConstraints:[NSLayoutConstraint SpactecledBearEdeg:self.timeLabel to:self.contentView type:EdgeTopBottomZero]];
-        [self.contentView addConstraints:[NSLayoutConstraint SpactecledBearEdeg:self.timeLabel to:self.contentView
-                                                                           type:EdgeLeftRightZero constant:56 + 8]];
+        
+        self.timeLabel = ({
+            UILabel *time = [UILabel new];
+            time.translatesAutoresizingMaskIntoConstraints = NO;
+            [self.contentView addSubview:time];
+            time;
+        });
+        
+        [CRLayout view:@[ self.timeLabel, self.contentView ] type:CREdgeTopBottom];
+        [CRLayout view:@[ self.timeLabel, self.contentView ] type:CREdgeLeftRight constants:UIEdgeInsetsMake(0, 64, 0, -64)];
     }
     return self;
 }

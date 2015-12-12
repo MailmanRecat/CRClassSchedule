@@ -10,6 +10,14 @@
 
 @implementation CRClassAccount
 
++ (instancetype)accountFromDefault{
+    return [[CRClassAccount alloc] initFromDictionary:@{
+                                                        CRClassAccountCurrentKEY: CRClassAccountCurrentYESKEY,
+                                                        CRClassAccountIDKEY: @"Default",
+                                                        CRClassAccountColorTypeKEY: @"default"
+                                                        }];
+}
+
 + (instancetype)accountFromDictionary:(NSDictionary *)dic{
     return [[CRClassAccount alloc] initFromDictionary:dic];
 }

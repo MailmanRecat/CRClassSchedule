@@ -13,4 +13,6 @@
 
 @property( nonatomic, strong ) CRClassSchedule *classSchedule;
 
+- (void)bearBottomLayout:(CGFloat)constant;
+
 @end

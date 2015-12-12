@@ -19,6 +19,8 @@
 @property( nonatomic, weak ) id<CRTimeOptionsVCHandler> handler;
 @property( nonatomic, strong ) NSString *curTimeString;
 
+@property( nonatomic, strong ) UIColor *themeColor;
+
 + (instancetype)shareTimeOptions;
 
 @end

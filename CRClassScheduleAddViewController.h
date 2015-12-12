@@ -13,6 +13,10 @@
 
 @property( nonatomic, strong ) CRClassSchedule *classSchedule;
 
+@property( nonatomic, assign ) NSUInteger type;
+@property( nonatomic, assign ) BOOL isPreview;
+
 - (void)perferItem:(UIButton *)sender;
+- (void)perferRightButtonColor:(UIColor *)color;
 
 @end

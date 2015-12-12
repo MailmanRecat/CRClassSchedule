@@ -56,6 +56,9 @@
         [self.bear selectRowAtIndexPath:[NSIndexPath indexPathForRow:self.mins inSection:0]
                                animated:NO
                          scrollPosition:UITableViewScrollPositionTop];
+    
+    if( self.themeColor )
+        self.park.backgroundColor = self.themeColor;
 }
 
 - (void)checkOptionString{

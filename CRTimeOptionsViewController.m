@@ -70,6 +70,9 @@
     [self.minTable selectRowAtIndexPath:[NSIndexPath indexPathForRow:self.min / 5 inSection:0]
                                animated:NO
                          scrollPosition:UITableViewScrollPositionTop];
+    
+    if( self.themeColor )
+        self.park.backgroundColor = self.themeColor;
 }
 
 - (void)parkSunset{

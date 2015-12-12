@@ -30,4 +30,6 @@ static NSString *const CRTimeOptionTypeKey = @"CRTimeOptionTypekey";
 @property( nonatomic, assign ) NSUInteger weekday;
 @property( nonatomic, assign ) NSUInteger mins;
 
+@property( nonatomic, strong ) UIColor *themeColor;
+
 @end

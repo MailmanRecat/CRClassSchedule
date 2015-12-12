@@ -21,7 +21,6 @@
 
 @property( nonatomic, strong ) UIView *park;
 @property( nonatomic, strong ) UILabel *parkTitle;
-@property( nonatomic, strong ) UIButton *dismissButton;
 
 @property( nonatomic, strong ) UITableView *bear;
 @property( nonatomic, strong ) NSArray *icons;
@@ -46,12 +45,27 @@
     [self makePark];
 }
 
+- (void)viewWillAppear:(BOOL)animated{
+    self.park.backgroundColor = [CRSettings CRAppColorTypes][[self.classSchedule.colorType lowercaseString]];
+    self.parkTitle.text = self.classSchedule.classname;
+    if( !animated )
+        [self.bear reloadData];
+}
+
+- (void)parkSunset{
+    self.park.layer.shadowOpacity = 0.27;
+}
+
+- (void)parkSunrise{
+    self.park.layer.shadowOpacity = 0;
+}
+
 - (void)makePark{
     
     self.park = ({
         UIView *park = [UIView new];
         park.translatesAutoresizingMaskIntoConstraints = NO;
-        park.backgroundColor = [UIColor CRColorType:CRColorTypeGoogleYellow];
+//        park.backgroundColor = [UIColor CRColorType:CRColorTypeGoogleYellow];
         [park makeShadowWithSize:CGSizeMake(0, 1) opacity:0 radius:1.7];
         park;
     });
@@ -101,6 +115,13 @@
     });
     [self.view addSubview:self.bear];
     [CRLayout view:@[ self.bear, self.view ] type:CREdgeAround];
+}
+
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView{
+    if( scrollView.contentOffset.y > -148 )
+        [self parkSunset];
+    else
+        [self parkSunrise];
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section{

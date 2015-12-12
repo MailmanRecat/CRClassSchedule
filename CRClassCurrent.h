@@ -12,5 +12,6 @@
 @interface CRClassCurrent : NSObject
 
 + (CRClassAccount *)account;
++ (NSArray *)classSchedule;
 
 @end

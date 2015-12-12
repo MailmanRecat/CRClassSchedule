@@ -47,6 +47,7 @@
 
 @property( nonatomic, assign ) BOOL once;
 
+@property( nonatomic, strong ) NSString *accountID;
 @property( nonatomic, strong ) NSArray *testData;
 
 @end
@@ -80,14 +81,24 @@
     [self handlerShortcut];
     [self registerForPreviewingWithDelegate:self sourceView:self.bear];
     
-    self.testData = [[NSUserDefaults standardUserDefaults] objectForKey:@"CRClassTestData"];
+//    self.testData = [[NSUserDefaults standardUserDefaults] objectForKey:@"CRClassTestData"];
 }
 
 - (void)viewWillAppear:(BOOL)animated{
     CRClassAccount *currentAccount = [CRClassCurrent account];
+    self.testData = [CRClassDatabase selectCRClassScheduleFromUser:currentAccount.ID];
+    
+//    NSLog(@"%@ %ld", self.testData, [self.testData count]);
+    
     self.park.backgroundColor =
     self.actionButtonAccount.backgroundColor = [CRSettings CRAppColorTypes][[currentAccount.colorType lowercaseString]];
     [self.actionButtonAccount setTitle:[[currentAccount.ID substringToIndex:1] uppercaseString] forState:UIControlStateNormal];
+    
+    if( self.isBeingDismissed ){
+//        NSLog(@"dismiss");
+//        [self.bear reloadData];
+    }
+    [self.bear reloadData];
 }
 
 - (void)viewDidAppear:(BOOL)animated{
@@ -108,8 +119,8 @@
 
 - (void)previewingContext:(id<UIViewControllerPreviewing>)previewingContext commitViewController:(UIViewController *)viewControllerToCommit{
     
-    CRClassAddViewController *CRClassAddVC = (CRClassAddViewController *)viewControllerToCommit;
-    CRClassAddVC.isPreview = NO;
+    CRClassScheduleAddViewController *VC = (CRClassScheduleAddViewController *)viewControllerToCommit;
+    VC.isPreview = NO;
     
     [self presentViewController:viewControllerToCommit animated:YES completion:nil];
 }
@@ -125,15 +136,14 @@
 
     CRClassSchedule *schedule = [CRTestFunction scheduleFromNSArray:self.testData[indexPath.section][indexPath.row]];
     
-    CRClassAddViewController *CRClassAddVC = ({
-        CRClassAddViewController *CRClassAddVC = [CRClassAddViewController new];
-        CRClassAddVC.model = CRViewModelDefault;
-        CRClassAddVC.isPreview = YES;
-        CRClassAddVC.classSchedule = schedule;
-        CRClassAddVC;
+    CRClassScheduleAddViewController *CRClassScheduleAddVC = ({
+        CRClassScheduleAddViewController *VC = [CRClassScheduleAddViewController new];
+        VC.classSchedule = schedule;
+        VC.isPreview = YES;
+        VC;
     });
     
-    return CRClassAddVC;
+    return CRClassScheduleAddVC;
 }
 
 - (void)doPark{
@@ -319,7 +329,7 @@
         return CRCell;
     }
     
-    if( indexPath.section == 0 && indexPath.row == 6 ){
+    if( indexPath.section == 0 && indexPath.row == [self.testData[0] count] ){
         CRCell = [tableView dequeueReusableCellWithIdentifier:CRClassCellMomentID];
         if( !CRCell ){
             CRCell = [[CRClassTableViewCell alloc] initFromMomentWithColor:[UIColor randomColor]];
@@ -334,7 +344,7 @@
         CRCell = [[CRClassTableViewCell alloc] initFromDefault];
     }
     
-    CRCell.wrapper.backgroundColor = [CRSettings CRAppColorTypes][schedule.colorType];
+    CRCell.wrapper.backgroundColor = [CRSettings CRAppColorTypes][[schedule.colorType lowercaseString]];
     CRCell.startTime.text = schedule.timeStart;
     CRCell.className.text = schedule.classname;
     CRCell.location.text = schedule.location;
@@ -381,13 +391,20 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath{
     NSLog(@"selected %@", indexPath);
-//    CRClassTableViewCell *cell = [tableView cellForRowAtIndexPath:indexPath];
-//    self.InitialFrame = [cell convertRect:cell.wrapper.frame toView:self.view];
-//    CRClassSchedule *schedule = [CRTestFunction scheduleFromNSArray:self.testData[indexPath.section][indexPath.row]];
-//    CRClassAddViewController *CRClassAddVC = [CRClassAddViewController shareFromClassSchedule:schedule];
-//    CRClassAddVC.transitioningDelegate = self.transitionAnimationObject;
-//    [self presentViewController:CRClassAddVC animated:YES completion:nil];
     [self animationFloatingButton:self.actionButton];
+    
+    CRClassSchedule *schedule = [CRTestFunction scheduleFromNSArray:self.testData[indexPath.section][indexPath.row]];
+    
+    CRClassScheduleAddViewController *CRClassScheduleAddVC = ({
+        CRClassScheduleAddViewController *VC = [CRClassScheduleAddViewController new];
+        VC.classSchedule = schedule;
+        VC.isPreview = NO;
+        VC;
+    });
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self presentViewController:CRClassScheduleAddVC animated:YES completion:nil];
+    });
 }
 
 - (void)CRClassAddViewController{
@@ -402,6 +419,7 @@
     });
     
     CRClassScheduleAddViewController *CRClassScheduleAdd = [CRClassScheduleAddViewController new];
+    CRClassScheduleAdd.type = 1;
     CRClassScheduleAdd.classSchedule = schedule;
     
     [self presentViewController:CRClassScheduleAdd animated:YES completion:nil];

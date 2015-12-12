@@ -12,5 +12,6 @@
 @interface CRClassScheduleViewModel : UIViewController
 
 @property( nonatomic, strong ) CRClassSchedule *classSchedule;
+@property( nonatomic, strong ) UIButton *dismissButton;
 
 @end

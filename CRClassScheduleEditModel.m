@@ -29,7 +29,7 @@
 #import "CRTextFieldViewController.h"
 #import "MOREColorPickerView.h"
 
-@interface CRClassScheduleEditModel()<UIScrollViewDelegate, UITextFieldDelegate, CRColorPickerHandler, CRTextFieldVCHandler, CRTimeOptionsVCHandler, CRTimeOptionVCHandler>
+@interface CRClassScheduleEditModel()<UIScrollViewDelegate, UITextFieldDelegate, UITextViewDelegate, CRColorPickerHandler, CRTextFieldVCHandler, CRTimeOptionsVCHandler, CRTimeOptionVCHandler>
 
 @property( nonatomic, strong ) CRTransitionAnimationObject *transitionObject;
 
@@ -63,17 +63,29 @@
                                       blockOnCompletion:^(GGAnimationSunriseType type){
                                           self.park.backgroundColor = self.targetColor;
                                       }];
+    self.sun.duration = 0.57f;
     
     [self makeBear];
     [self makePark];
 }
 
 - (void)viewWillAppear:(BOOL)animated{
-    NSLog(@"will appear");
+    
+    if( !animated ){
+        self.park.backgroundColor = [CRSettings CRAppColorTypes][[self.classSchedule.colorType lowercaseString]];
+    }
+    
+    self.parkTitle.text = self.title;
+    if( ![self.classSchedule.classname isEqualToString:@"Class name"] ){
+        self.classname.text = self.classSchedule.classname;
+    }
     self.timeStart.textLabel.text = self.classSchedule.timeStart;
     self.location.textLabel.text = self.classSchedule.location;
-    self.classname.text = self.classSchedule.classname;
-    self.teacher.placeholder = self.classSchedule.teacher;
+    if( [self.classSchedule.teacher isEqualToString:@"Teacher"] ){
+        self.teacher.placeholder = @"Teacher";
+    }else{
+        self.teacher.text = self.classSchedule.teacher;
+    }
     self.teacher.tintColor = [UIColor CRColorType:CRColorTypeGoogleMapBlue];
     self.weekday.textLabel.text = self.classSchedule.weekday;
     self.timeLong.textLabel.text = self.classSchedule.timeLong;
@@ -82,11 +94,19 @@
     self.userInfo.textView.text = self.classSchedule.userInfo;
 }
 
+- (void)parkSunset{
+    self.park.layer.shadowOpacity = 0.27;
+}
+
+- (void)parkSunrise{
+    self.park.layer.shadowOpacity = 0;
+}
+
 - (void)makePark{
     self.park = ({
         UIView *park = [UIView new];
         park.translatesAutoresizingMaskIntoConstraints = NO;
-        park.backgroundColor = [UIColor CRColorType:CRColorTypeGoogleYellow];
+        park.backgroundColor = [CRSettings CRAppColorTypes][[self.classSchedule.colorType lowercaseString]];
         [park makeShadowWithSize:CGSizeMake(0, 1) opacity:0 radius:1.7];
         park;
     });
@@ -94,7 +114,6 @@
     self.parkTitle = ({
         UILabel *parkTitle = [UILabel new];
         parkTitle.translatesAutoresizingMaskIntoConstraints = NO;
-        parkTitle.text = @"New Class";
         parkTitle.textColor = [UIColor whiteColor];
         parkTitle.font = [CRSettings appFontOfSize:21 weight:UIFontWeightMedium];
         parkTitle;
@@ -144,6 +163,7 @@
     
     self.classname = ({
         CRTextFieldView *classname = [[CRTextFieldView alloc] initWithoutIcon];
+        classname.delegate = self;
         classname.placeholder = @"Class name";
         classname;
     });
@@ -193,7 +213,7 @@
     self.userInfo = ({
         CRTextView *userInfo = [CRTextView new];
         userInfo.icon.text = [UIFont mdiPencil];
-//        userInfo.textView.delegate = self;
+        userInfo.textView.delegate = self;
         userInfo.textView.font = [CRSettings appFontOfSize:17];
         userInfo.textView.textColor = [UIColor colorWithWhite:117 / 255.0 alpha:1];
         userInfo;
@@ -215,15 +235,98 @@
                            option:autolayoutStackOptionTrailing];
 }
 
+- (void)bearBottomLayout:(CGFloat)constant{
+    self.bearBottomLayoutGuide.constant = constant;
+    
+    if( [self.userInfo.textView isFirstResponder] ){
+        CGFloat pointY = self.userInfo.frame.origin.y - STATUS_BAR_HEIGHT - 56;
+        self.bear.contentOffset = CGPointMake(0, pointY);
+        
+    }else if( [self.teacher isFirstResponder] ){
+        CGFloat pointY = self.teacher.frame.origin.y - STATUS_BAR_HEIGHT - 56;
+        self.bear.contentOffset = CGPointMake(0, pointY);
+        
+    }else if( [self.classname isFirstResponder] ){
+        CGFloat pointY = self.classname.frame.origin.y - STATUS_BAR_HEIGHT - 56;
+        self.bear.contentOffset = CGPointMake(0, pointY);
+        
+    }
+
+}
+
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView{
+    if( scrollView.contentOffset.y > 0 )
+        [self parkSunset];
+    else
+        [self parkSunrise];
+}
+
+- (BOOL)textFieldShouldReturn:(UITextField *)textField{
+    NSString *text = [textField.text stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+    
+    if( ![text isEqualToString:@""] ){
+        if( textField == self.classname  ){
+            self.classSchedule.classname = text;
+        }else if( textField == self.teacher ){
+            self.classSchedule.teacher = text;
+        }
+    }
+    
+    [self.view endEditing:YES];
+    return YES;
+}
+
+- (void)textFieldDidEndEditing:(UITextField *)textField{
+    NSString *text = [textField.text stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+    
+    if( ![text isEqualToString:@""] ){
+        if( textField == self.classname  ){
+            self.classSchedule.classname = text;
+        }else if( textField == self.teacher ){
+            self.classSchedule.teacher = text;
+        }
+    }
+}
+
+- (BOOL)textViewShouldBeginEditing:(UITextView *)textView{
+    
+    if( [textView.text isEqualToString:@"Add note"] ){
+        textView.text = @"";
+        textView.textColor = [UIColor blackColor];
+    }else{
+        textView.textColor = [UIColor colorWithWhite:117 / 255.0 alpha:1];
+    }
+    
+    return YES;
+}
+
+- (void)textViewDidEndEditing:(UITextView *)textView{
+    NSString *text = [textView.text stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+    
+    if( ![text isEqualToString:@""] ){
+        self.classSchedule.userInfo = text;
+    }else{
+        self.classSchedule.userInfo = @"Add note";
+        textView.text = @"Add note";
+        textView.textColor = [UIColor colorWithWhite:117 / 255.0 alpha:1];
+    }
+}
+
 - (void)CRTimeOptionsViewController{
-    CRTimeOptionsViewController *timeOptions = [CRTimeOptionsViewController shareTimeOptions];
-    timeOptions.transitioningDelegate = self.transitionObject;
-    timeOptions.curTimeString = self.classSchedule.timeStart;
-    timeOptions.handler = self;
+    
+    CRTimeOptionsViewController *timeOptions = ({
+        CRTimeOptionsViewController *option = [CRTimeOptionsViewController shareTimeOptions];
+        option.transitioningDelegate = self.transitionObject;
+        option.curTimeString = self.classSchedule.timeStart;
+        option.themeColor = self.park.backgroundColor;
+        option.handler = self;
+        option;
+    });
+    
     [self presentViewController:timeOptions animated:YES completion:nil];
 }
 - (void)CRTimeOptionsVCDidDismissWithOption:(NSString *)option{
-    self.classSchedule.timeStart = option;
+    self.timeStart.textLabel.text = self.classSchedule.timeStart = option;
 }
 
 - (void)CRTimeOptionViewController{
@@ -255,6 +358,7 @@
     CRTimeOptionViewController *timeOption = ({
         CRTimeOptionViewController *timeOption  = [CRTimeOptionViewController new];
         timeOption.transitioningDelegate = self.transitionObject;
+        timeOption.themeColor = self.park.backgroundColor;
         timeOption.handler = self;
         timeOption.type = CRTimeOptionTypeClassmins;
         timeOption.mins = timeMap[ minString ] ? [timeMap[ minString ] integerValue] : 0;
@@ -269,6 +373,7 @@
     CRTimeOptionViewController *weekdayOption = ({
         CRTimeOptionViewController *weekdayOption = [CRTimeOptionViewController new];
         weekdayOption.transitioningDelegate = self.transitionObject;
+        weekdayOption.themeColor = self.park.backgroundColor;
         weekdayOption.handler = self;
         weekdayOption.weekday = [CRSettings weekdayFromString:self.weekday.textLabel.text];
         weekdayOption.type = CRTimeOptionTypeWeekday;
@@ -278,7 +383,11 @@
     [self presentViewController:weekdayOption animated:YES completion:nil];
 }
 - (void)CRTimeOptionVCDidDismissWithType:(CRTimeOptionType)type option:(NSString *)option{
-    
+    if( type == CRTimeOptionTypeClassmins ){
+        self.classSchedule.timeLong = self.timeLong.textLabel.text = option;
+    }else if( type == CRTimeOptionTypeWeekday ){
+        self.classSchedule.weekday = self.weekday.textLabel.text = option;
+    }
 }
 
 - (void)CRTextFieldViewController{
@@ -293,8 +402,13 @@
     [self presentViewController:textField animated:YES completion:nil];
 }
 - (void)CRTextFieldVCDidDismiss:(NSString *)textFieldString{
+    NSString *text = [textFieldString stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
     
+    if( ![text isEqualToString:@""] ){
+        self.classSchedule.location = self.location.textLabel.text = text;
+    }
 }
+
 - (BOOL)CRTextFieldVCShouldReturn:(UIViewController *)viewController{
     return YES;
 }
@@ -313,6 +427,7 @@
 - (void)CRColorPickerDidDismissHandler:(UIColor *)color name:(NSString *)name{
     self.classSchedule.colorType = self.colorType.textLabel.text = name;
     self.targetColor = self.colorType.icon.textColor = color;
+    [(CRClassScheduleAddViewController *)self.parentViewController perferRightButtonColor:color];
     [self.sun sunriseAtLand:self.park
                    location:CGPointMake(self.park.frame.size.width / 2.0, (STATUS_BAR_HEIGHT + 56) / 2.0f)
                  lightColor:color];

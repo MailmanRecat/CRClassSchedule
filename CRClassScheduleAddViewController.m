@@ -8,6 +8,7 @@
 
 #import "CRClassScheduleAddViewController.h"
 #import "CRSettings.h"
+#import "CRClassDatabase.h"
 #import "UIColor+CRColor.h"
 #import "UIView+MOREShadow.h"
 #import "UIView+MOREStackLayoutView.h"
@@ -23,7 +24,6 @@
 @property( nonatomic, strong ) NSLayoutConstraint *toolBarLayoutGuide;
 @property( nonatomic, strong ) UIButton *leftButton;
 @property( nonatomic, strong ) UIButton *rightButton;
-
 
 @property( nonatomic, strong ) NSArray<UIViewController *> *items;
 
@@ -51,21 +51,34 @@
     
     [self addChildViewController:viewModel];
     [self addChildViewController:editModel];
-    [self.view addSubview:viewModel.view];
-    self.currentIndex = 0;
+    
+    if( self.type == 1 ){
+        [self.view addSubview:editModel.view];
+        self.currentIndex = 1;
+        editModel.title = @"New Class";
+    }else{
+        [self.view addSubview:viewModel.view];
+        self.currentIndex = 0;
+        editModel.title = @"Edit Class";
+    }
     
     [self makeToolBar];
-    
     [self addNotificationObserver];
 }
 
-- (void)viewDidAppear:(BOOL)animated{
-    [self perferItem:({
-        UIButton *test = [UIButton new];
-        test.tag = 1001;
-        test;
-    })];
+- (void)viewWillAppear:(BOOL)animated{
+    [self perferRightButtonColor:[CRSettings CRAppColorTypes][[self.classSchedule.colorType lowercaseString]]];
+    
+    if( self.isPreview ){
+        ((CRClassScheduleViewModel *)self.items[0]).dismissButton.hidden = YES;
+        self.toolBar.hidden = YES;
+    }else{
+        ((CRClassScheduleViewModel *)self.items[0]).dismissButton.hidden = NO;
+        self.toolBar.hidden = NO;
+    }
 }
+
+- (void)viewDidAppear:(BOOL)animated{}
 
 - (void)addNotificationObserver{
     NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
@@ -85,8 +98,9 @@
         [self.rightButton removeTarget:self action:@selector(perferItem:) forControlEvents:UIControlEventTouchUpInside];
         [self.rightButton addTarget:self action:@selector(viewEndEdit) forControlEvents:UIControlEventTouchUpInside];
     }
-    
-    self.toolBarLayoutGuide.constant = -constant;
+
+    [(CRClassScheduleEditModel *)self.items[1] bearBottomLayout:constant];
+    self.toolBarLayoutGuide.constant = -constant > 0 ? 0 : -constant;
     [self.rightButton setTitle:@"Done" forState:UIControlStateNormal];
     [UIView animateWithDuration:duration
                           delay:0.0f
@@ -104,29 +118,59 @@
     [self.rightButton setTitle:@"Save" forState:UIControlStateNormal];
 }
 
+
+- (void)perferRightButtonColor:(UIColor *)color{
+    [self.rightButton setTitleColor:color forState:UIControlStateNormal];
+}
+
+- (void)scheduleSave{
+    NSLog(@"%@", self.classSchedule.scheduleID);
+    NSLog(@"%@", self.classSchedule.user);
+    NSLog(@"%@", self.classSchedule.weekday);
+    NSLog(@"%@", self.classSchedule.timeStart);
+    NSLog(@"%@", self.classSchedule.location);
+    NSLog(@"%@", self.classSchedule.classname);
+    NSLog(@"%@", self.classSchedule.teacher);
+    NSLog(@"%@", self.classSchedule.timeLong);
+    NSLog(@"%@", self.classSchedule.colorType);
+    NSLog(@"%@", self.classSchedule.userInfo);
+    NSLog(@"%@", self.classSchedule.type);
+    
+    if( [self.classSchedule.scheduleID isEqualToString:ClassScheduleInvalidID] )
+        [CRClassDatabase insertCRClassSchedule:self.classSchedule];
+    else
+        [CRClassDatabase updateCRClassSchedule:self.classSchedule];
+}
+
 - (void)perferItem:(UIButton *)sender{
     
-    if( sender.tag - 1000 == self.currentIndex ) return;
+    NSUInteger tag = sender.tag - 1000;
     
-    if( sender.tag == 1000 ){
+    if( tag == self.currentIndex ){
+        if( [self.rightButton.titleLabel.text isEqualToString:@"Save"] ){
+            tag = 0;
+            [self scheduleSave];
+            NSLog(@"Save");
+        }else{
+            return;
+        }
+    };
+    
+    if( tag == 0 ){
         self.leftButton.enabled = YES;
         [self.leftButton setTitleColor:[UIColor CRColorType:CRColorTypeGoogleTomato] forState:UIControlStateNormal];
-        [self.rightButton makeButtonTitle:@"Edit"
-                               titleColor:[UIColor CRColorType:CRColorTypeGoogleYellow]
-                                    state:UIControlStateNormal];
+        [self.rightButton setTitle:@"Edit" forState:UIControlStateNormal];
     }else{
         self.leftButton.enabled = NO;
         [self.leftButton setTitleColor:[UIColor clearColor] forState:UIControlStateNormal];
-        [self.rightButton makeButtonTitle:@"Save"
-                               titleColor:[UIColor CRColorType:CRColorTypeGoogleMapBlue]
-                                    state:UIControlStateNormal];
+        [self.rightButton setTitle:@"Save" forState:UIControlStateNormal];
     }
     
-    UIViewController *controller = self.items[sender.tag - 1000];
+    UIViewController *controller = self.items[tag];
+    UIViewController *missController = self.items[self.currentIndex];
     [self.view insertSubview:controller.view belowSubview:self.toolBar];
     
-    controller.view.frame = self.view.bounds;
-    CGFloat fromPoint = sender.tag == 1000 ? -57 : 57;
+    CGFloat fromPoint = tag == 0 ? -37 : 37;
     
     CABasicAnimation *animation;
     CABasicAnimation *opacityAnimation = ({
@@ -143,6 +187,16 @@
         animation;
     });
     
+    CABasicAnimation *opacityReverseAnimation = ({
+        CABasicAnimation *rAnimation = [CABasicAnimation animationWithKeyPath:@"opacity"];
+        rAnimation.fromValue = [NSNumber numberWithFloat:1.0f];
+        rAnimation.toValue = [NSNumber numberWithFloat:0.0f];
+        rAnimation.timingFunction = [CAMediaTimingFunction functionWithControlPoints:0.4 :0 :0.2 :1];
+        rAnimation.duration = 0.27;
+        rAnimation.removedOnCompletion = YES;
+        rAnimation;
+    });
+    
     CAAnimationGroup *group = ({
         CAAnimationGroup *group = [CAAnimationGroup animation];
         group.animations = @[ opacityAnimation, positionAnimation ];
@@ -154,7 +208,8 @@
     });
     
     [controller.view.layer addAnimation:group forKey:@"changeViewController"];
-    self.currentIndex = sender.tag - 1000;
+//    [missController.view.layer addAnimation:opacityReverseAnimation forKey:@"missViewController"];
+    self.currentIndex = tag;
 }
 
 - (void)animationDidStop:(CAAnimation *)anim finished:(BOOL)flag{
@@ -177,14 +232,17 @@
     self.leftButton = makeButton( 1000 );
     self.rightButton = makeButton( 1001 );
     
-    [self.leftButton makeButtonTitle:@"Detele" titleColor:[UIColor CRColorType:CRColorTypeGoogleTomato] state:UIControlStateNormal];
-    [self.rightButton makeButtonTitle:@"Edit" titleColor:[UIColor CRColorType:CRColorTypeGoogleMapBlue] state:UIControlStateNormal];
+    NSString *actionName = self.type == 1 ? @"Save" : @"Edit";
+    UIColor *actionColor = self.type == 1 ? [UIColor clearColor] : [UIColor CRColorType:CRColorTypeGoogleTomato];
+    
+    [self.leftButton makeButtonTitle:@"Detele" titleColor:actionColor state:UIControlStateNormal];
+    [self.rightButton makeButtonTitle:actionName titleColor:[UIColor CRColorType:CRColorTypeGoogleMapBlue] state:UIControlStateNormal];
     
     self.toolBar = ({
         UIView *toolBar = [[UIView alloc] init];
         toolBar.backgroundColor = [UIColor whiteColor];
         toolBar.translatesAutoresizingMaskIntoConstraints = NO;
-        [toolBar makeShadowWithSize:CGSizeMake(0, -1) opacity:0.27 radius:3];
+        [toolBar makeShadowWithSize:CGSizeMake(0, -1) opacity:0.07 radius:3];
         toolBar;
     });
     

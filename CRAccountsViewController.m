@@ -22,6 +22,8 @@
 #import "CRInfoViewController.h"
 #import "CRTextFieldViewController.h"
 
+#import "CRDebugViewController.h"
+
 #import "CRClassAddViewController.h"
 
 @interface CRAccountsViewController()<UIScrollViewDelegate, UITableViewDataSource, UITableViewDelegate>
@@ -178,7 +180,7 @@
     cell.icon.backgroundColor = [CRSettings CRAppColorTypes][[account.colorType lowercaseString]];
     cell.accountName.text = account.ID;
     
-    if( [account.current isEqualToString:@"YES"] ){
+    if( [account.current isEqualToString:CRClassAccountCurrentYESKEY] ){
         [cell makeCheck];
         if( !self.selectedRow ) self.selectedRow = indexPath.row;
     }else{
@@ -229,9 +231,15 @@
 }
 
 - (void)CRInfoViewController{
-    CRInfoViewController *info = [CRInfoViewController new];
-    info.transitioningDelegate = self.transitioningDelegate;
-    [self presentViewController:info animated:YES completion:nil];
+//    CRInfoViewController *info = [CRInfoViewController new];
+//    info.transitioningDelegate = self.transitioningDelegate;
+//    [self presentViewController:info animated:YES completion:nil];
+    [self CRDebugViewController];
+}
+
+- (void)CRDebugViewController{
+    CRDebugViewController *debug = [CRDebugViewController new];
+    [self presentViewController:debug animated:YES completion:nil];
 }
 
 - (void)dismissSelf{
