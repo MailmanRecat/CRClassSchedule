@@ -9,8 +9,15 @@
 #import <UIKit/UIKit.h>
 #import "CRClassSchedule.h"
 
+@protocol CRClassAddViewControllerPreviewActionHandler <NSObject>
+
+- (void)CRClassAddPreviewAction:(NSString *)type fromController:(UIViewController *)controller;
+
+@end
+
 @interface CRClassScheduleAddViewController : UIViewController
 
+@property( nonatomic, weak ) id<CRClassAddViewControllerPreviewActionHandler> previewActionHandler;
 @property( nonatomic, strong ) CRClassSchedule *classSchedule;
 
 @property( nonatomic, assign ) NSUInteger type;

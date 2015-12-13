@@ -47,7 +47,7 @@
 
 - (void)viewWillAppear:(BOOL)animated{
     self.park.backgroundColor = [CRSettings CRAppColorTypes][[self.classSchedule.colorType lowercaseString]];
-    self.parkTitle.text = self.classSchedule.classname;
+    self.parkTitle.text = [self.classSchedule.classname isEqualToString:@"Class name"] ? @"(No title)" : self.classSchedule.classname;
     if( !animated )
         [self.bear reloadData];
 }
@@ -65,17 +65,17 @@
     self.park = ({
         UIView *park = [UIView new];
         park.translatesAutoresizingMaskIntoConstraints = NO;
-//        park.backgroundColor = [UIColor CRColorType:CRColorTypeGoogleYellow];
         [park makeShadowWithSize:CGSizeMake(0, 1) opacity:0 radius:1.7];
         park;
     });
     
     self.parkTitle = ({
         UILabel *parkTitle = [UILabel new];
-        parkTitle.text = @"New Class";
         parkTitle.translatesAutoresizingMaskIntoConstraints = NO;
         parkTitle.textColor = [UIColor whiteColor];
-        parkTitle.font = [CRSettings appFontOfSize:21 weight:UIFontWeightMedium];
+        parkTitle.font = [CRSettings appFontOfSize:33 weight:UIFontWeightMedium];
+        parkTitle.adjustsFontSizeToFitWidth = YES;
+        parkTitle.numberOfLines = 0;
         parkTitle;
     });
     
@@ -95,7 +95,19 @@
  
     [self.park addSubview:self.dismissButton];
     [self.park addSubview:self.parkTitle];
-    [CRLayout view:@[ self.parkTitle, self.park ] type:CREdgeAround constants:UIEdgeInsetsMake(STATUS_BAR_HEIGHT + 56, 72, 0, -16)];
+    [CRLayout view:@[ self.parkTitle, self.park ] type:CREdgeBottomLeftRight constants:UIEdgeInsetsMake(0, 72, 0, -8)];
+    [self.parkTitle addConstraint:[CRLayout view:@[ self.parkTitle ]
+                                       attribute:NSLayoutAttributeHeight
+                                        relateBy:NSLayoutRelationGreaterThanOrEqual
+                                       attribute:NSLayoutAttributeNotAnAttribute
+                                      multiplier:1.0
+                                        constant:72]];
+    [self.parkTitle addConstraint:[CRLayout view:@[ self.parkTitle ]
+                                       attribute:NSLayoutAttributeHeight
+                                        relateBy:NSLayoutRelationLessThanOrEqual
+                                       attribute:NSLayoutAttributeNotAnAttribute
+                                      multiplier:1.0
+                                        constant:56 + 72]];
 }
 
 - (void)makeBear{

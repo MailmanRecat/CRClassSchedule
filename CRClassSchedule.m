@@ -39,7 +39,7 @@
                                                          ClassScheduleID: ClassScheduleInvalidID,
                                                          ClassScheduleUser: [CRClassCurrent account].ID,
                                                          ClassScheduleWeekday: [CRSettings weekday],
-                                                         ClassScheduleTimeStart: @"07: 00",
+                                                         ClassScheduleTimeStart: @"07:00",
                                                          ClassScheduleLocation: @"Location",
                                                          ClassScheduleClassname: @"Class name",
                                                          ClassScheduleTeacher: @"Teacher",

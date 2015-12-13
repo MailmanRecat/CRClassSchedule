@@ -18,6 +18,8 @@
 #import "UIColor+CRColor.h"
 #import "CRClassTableViewCell.h"
 
+#import "CRLanguage.h"
+
 @interface CRDebugViewController()
 
 @property( nonatomic, strong ) UIView *park;

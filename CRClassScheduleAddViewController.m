@@ -31,6 +31,35 @@
 
 @implementation CRClassScheduleAddViewController
 
+-(NSArray<id<UIPreviewActionItem>> *)previewActionItems {
+    
+    UIPreviewAction *deleteAction = [UIPreviewAction actionWithTitle:@"Delete" style:UIPreviewActionStyleDestructive handler:^(UIPreviewAction * _Nonnull action, UIViewController * _Nonnull previewController) {
+        
+        if( self.previewActionHandler && [self.previewActionHandler respondsToSelector:@selector(CRClassAddPreviewAction:fromController:)] ){
+            [self.previewActionHandler CRClassAddPreviewAction:action.title fromController:previewController];
+        }
+        
+    }];
+    
+    UIPreviewAction *cancel = [UIPreviewAction actionWithTitle:@"Cancel" style:UIPreviewActionStyleDefault handler:^(UIPreviewAction * _Nonnull action, UIViewController * _Nonnull previewController){
+        
+        if( self.previewActionHandler && [self.previewActionHandler respondsToSelector:@selector(CRClassAddPreviewAction:fromController:)] ){
+            [self.previewActionHandler CRClassAddPreviewAction:action.title fromController:previewController];
+        }
+    }];
+    
+    UIPreviewActionGroup *delete = [UIPreviewActionGroup actionGroupWithTitle:@"Delete" style:UIPreviewActionStyleDestructive actions:@[ deleteAction, cancel ]];
+    
+    UIPreviewAction *editAction = [UIPreviewAction actionWithTitle:@"Edit Class" style:UIPreviewActionStyleDefault handler:^( UIPreviewAction * _Nonnull action, UIViewController * _Nonnull previewController ){
+        
+        if( self.previewActionHandler && [self.previewActionHandler respondsToSelector:@selector(CRClassAddPreviewAction:fromController:)] ){
+            [self.previewActionHandler CRClassAddPreviewAction:action.title fromController:previewController];
+        }
+    }];
+    
+    return @[ editAction, delete ];
+}
+
 - (void)viewDidLoad{
     [super viewDidLoad];
     self.view.backgroundColor = [UIColor whiteColor];
@@ -136,10 +165,14 @@
     NSLog(@"%@", self.classSchedule.userInfo);
     NSLog(@"%@", self.classSchedule.type);
     
+    BOOL saved;
     if( [self.classSchedule.scheduleID isEqualToString:ClassScheduleInvalidID] )
-        [CRClassDatabase insertCRClassSchedule:self.classSchedule];
+        saved = [CRClassDatabase insertCRClassSchedule:self.classSchedule];
     else
-        [CRClassDatabase updateCRClassSchedule:self.classSchedule];
+        saved = [CRClassDatabase updateCRClassSchedule:self.classSchedule];
+    
+    if( saved )
+        [self dismissViewControllerAnimated:YES completion:nil];
 }
 
 - (void)perferItem:(UIButton *)sender{

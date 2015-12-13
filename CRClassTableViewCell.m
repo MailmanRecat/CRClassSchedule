@@ -53,6 +53,8 @@
         self.startTime.text = @"Now";
         self.startTime.textAlignment = NSTextAlignmentCenter;
         [self addSubview:self.startTime];
+        
+        self.selectionStyle = UITableViewCellSelectionStyleNone;
     }
     return self;
 }
@@ -61,12 +63,20 @@
     self = [super initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CRClassCellDefaultID];
     if( self ){
         [self initClass];
-        self.startTime.font = [CRSettings appFontOfSize:21 weight:UIFontWeightMedium];
+        self.startTime.font = [CRSettings appFontOfSize:21];
         self.startTime.textColor = [UIColor colorWithWhite:117 / 255.0 alpha:1];
         self.className.textColor = self.location.textColor = [UIColor whiteColor];
         self.wrapper.layer.cornerRadius = 3.0f;
         self.className.font = [CRSettings appFontOfSize:17 weight:UIFontWeightMedium];
         self.location.font = [CRSettings appFontOfSize:14];
+    }
+    return self;
+}
+
+- (instancetype)initFromWhite{
+    self = [super initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CRClassCellWhiteID];
+    if( self ){
+        self.backgroundColor = [UIColor whiteColor];
     }
     return self;
 }
@@ -147,9 +157,9 @@
     [self.contentView addConstraints:cons];
     [cons removeAllObjects];
     
-    [CRLayout view:@[ self.className, self.wrapper ] type:CREdgeTopLeftRight constants:UIEdgeInsetsMake(4, 8, 0, -8)];
+    [CRLayout view:@[ self.className, self.wrapper ] type:CREdgeTopLeftRight constants:UIEdgeInsetsMake(8, 8, 0, -8)];
     [CRLayout view:@[ self.className ] type:CRFixedHeight constants:UIEdgeInsetsMake(0, classNameHeight, 0, 0)];
-    [CRLayout view:@[ self.location, self.wrapper ] type:CREdgeTopLeftRight constants:UIEdgeInsetsMake(4 + classNameHeight, 8, 0, -8)];
+    [CRLayout view:@[ self.location, self.wrapper ] type:CREdgeTopLeftRight constants:UIEdgeInsetsMake(8 + classNameHeight, 8, 0, -8)];
     [CRLayout view:@[ self.location ] type:CRFixedHeight constants:UIEdgeInsetsMake(0, classNameHeight, 0, 0)];
 }
 

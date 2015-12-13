@@ -11,6 +11,7 @@
 static NSString *const CRClassCellNoClassID = @"CRClassCellNoClassID";
 static NSString *const CRClassCellMomentID = @"CRClassCellMonmentID";
 static NSString *const CRClassCellDefaultID = @"CRClassCellDefaultID";
+static NSString *const CRClassCellWhiteID = @"CRClassCellWhiteID";
 
 @interface CRClassTableViewCell : UITableViewCell
 
@@ -23,6 +24,7 @@ static NSString *const CRClassCellDefaultID = @"CRClassCellDefaultID";
 - (instancetype)initFromNoClass;
 - (instancetype)initFromMomentWithColor:(UIColor *)color;
 - (instancetype)initFromDefault;
+- (instancetype)initFromWhite;
 
 - (void)setMomentColor:(UIColor *)color;
 

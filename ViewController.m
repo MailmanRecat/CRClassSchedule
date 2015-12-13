@@ -18,6 +18,7 @@
 #import "UIColor+CRColor.h"
 #import "HuskyButton.h"
 #import "CRClassTableViewCell.h"
+#import "TimeTalkerBird.h"
 
 #import "CRTransitionAnimationObject.h"
 #import "CRAccountsViewController.h"
@@ -26,10 +27,10 @@
 
 #import "CRTestFunction.h"
 
-@interface ViewController ()<CRTransitionAnimationDataSource, UIScrollViewDelegate, UIViewControllerPreviewingDelegate, UITableViewDataSource, UITableViewDelegate>
+static NSString *const TIME_LINE_NOW = @"TIME_LINE_NOW";
 
-@property( nonatomic, strong ) CRTransitionAnimationObject *transitionAnimationObject;
-@property( nonatomic, assign ) CGRect InitialFrame;
+@interface ViewController ()<UIScrollViewDelegate, UIViewControllerPreviewingDelegate, UITableViewDataSource, UITableViewDelegate>
+
 @property( nonatomic, strong ) CRTransitionAnimationObject *transitionAnimationDafult;
 @property( nonatomic, strong ) UIView *park;
 @property( nonatomic, strong ) NSLayoutConstraint *parkLayoutGuide;
@@ -43,33 +44,21 @@
 @property( nonatomic, strong ) NSArray *headerViewsLayoutGuide;
 @property( nonatomic, strong ) NSMutableArray *shouldRelayoutGuide;
 
-@property( nonatomic, strong ) NSLayoutConstraint *testLayout;
-
-@property( nonatomic, assign ) BOOL once;
-
+@property( nonatomic, strong ) UIColor *themeColor;
 @property( nonatomic, strong ) NSString *accountID;
 @property( nonatomic, strong ) NSArray *testData;
+
+@property( nonatomic, assign ) NSUInteger timeLineIndexSection;
+@property( nonatomic, assign ) NSUInteger timeLineIndexRow;
 
 @end
 
 @implementation ViewController
 
-- (CGRect)CRTransitionAnimationFolderFinalFrame{
-    return self.view.bounds;
-}
-
-- (CGRect)CRTransitionAnimationFolderInitialFrame{
-    NSLog(@"%f %f %f %f", self.InitialFrame.origin.x, self.InitialFrame.origin.y, self.InitialFrame.size.width, self.InitialFrame.size.height);
-    return self.InitialFrame;
-}
-
 - (void)viewDidLoad {
     [super viewDidLoad];
     [[self view] setBackgroundColor:[UIColor whiteColor]];
     
-    self.title = @"CRLaunch's Class Schedule";
-    self.transitionAnimationObject = [CRTransitionAnimationObject folderCRTransitionAnimation];
-    self.transitionAnimationObject.dataSource = self;
     self.transitionAnimationDafult = [CRTransitionAnimationObject defaultCRTransitionAnimation];
     self.shouldRelayoutGuide = [NSMutableArray new];
     
@@ -79,25 +68,55 @@
     [self doHeaderViews];
     
     [self handlerShortcut];
-    [self registerForPreviewingWithDelegate:self sourceView:self.bear];
-    
-//    self.testData = [[NSUserDefaults standardUserDefaults] objectForKey:@"CRClassTestData"];
+    [self check3DTouch];
 }
 
 - (void)viewWillAppear:(BOOL)animated{
     CRClassAccount *currentAccount = [CRClassCurrent account];
-    self.testData = [CRClassDatabase selectCRClassScheduleFromUser:currentAccount.ID];
+    self.themeColor = [CRSettings CRAppColorTypes][[currentAccount.colorType lowercaseString]];
     
-//    NSLog(@"%@ %ld", self.testData, [self.testData count]);
-    
-    self.park.backgroundColor =
-    self.actionButtonAccount.backgroundColor = [CRSettings CRAppColorTypes][[currentAccount.colorType lowercaseString]];
+    self.titleLabel.text = currentAccount.ID;
+    self.park.backgroundColor = self.actionButtonAccount.backgroundColor = self.themeColor;
     [self.actionButtonAccount setTitle:[[currentAccount.ID substringToIndex:1] uppercaseString] forState:UIControlStateNormal];
     
-    if( self.isBeingDismissed ){
-//        NSLog(@"dismiss");
-//        [self.bear reloadData];
-    }
+    NSArray *schedules = ({
+        NSString *nowTimeString = ({
+            NSDateComponents *now = [TimeTalkerBird currentDate];
+            NSString *(^formatTimeFromStirng)(NSUInteger) = ^(NSUInteger time){
+                return time < 9 ? [NSString stringWithFormat:@"0%ld", time] : [NSString stringWithFormat:@"%ld", time];
+            };
+            [NSString stringWithFormat:@"%@:%@", formatTimeFromStirng(now.hour), formatTimeFromStirng(now.minute)];
+        });
+        
+        CRClassSchedule *current = ({
+            CRClassSchedule *current = [CRClassSchedule ClassCreateTempleSchedule];
+            current.scheduleID = TIME_LINE_NOW;
+            current.timeStart = nowTimeString;
+            current;
+        });
+        
+        NSUInteger weekday = ({
+            NSUInteger weekday = [CRSettings weekdayFromString:[CRSettings weekday]] - 1;
+            weekday == -2 ? 0 : weekday;
+        });
+        
+        NSMutableArray *schedules = [[NSMutableArray alloc] initWithArray:[CRClassCurrent classSchedule]];
+        
+        NSArray *row, *schedule;
+        NSMutableArray *todaySchedules = [[NSMutableArray alloc] initWithArray:schedules[weekday]];
+        row = [CRClassDatabase rowFromCRClassSchedule:current];
+        [todaySchedules addObject:row];
+        schedule = [CRClassDatabase sortCRClassScheduleByTime:(NSArray *)todaySchedules];
+        
+        self.timeLineIndexSection = weekday;
+        self.timeLineIndexRow = [schedule indexOfObject:row];
+        
+        [schedules replaceObjectAtIndex:weekday withObject:schedule];
+        
+        (NSArray *)schedules;
+    });
+    
+    self.testData = schedules;
     [self.bear reloadData];
 }
 
@@ -107,9 +126,28 @@
         NSUInteger index = [con.identifier integerValue];
         UIView *view = self.headerViews[index];
         CGFloat fuck = view.frame.origin.y - self.view.frame.size.height - self.bear.contentOffset.y;
-        con.constant = fuck / 3;
+        con.constant = fuck / 4;
     }];
     [self.bear layoutIfNeeded];
+}
+
+- (void)addNotificationObserver{
+    NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
+    
+//    [center addObserver:self
+//               selector:@selector(reloadBear)
+//                   name:CRClassAccountDidChangeNotification
+//                 object:nil];
+}
+
+- (void)check3DTouch{
+    BOOL support3DTouch = YES;
+    
+    if( self.traitCollection.forceTouchCapability != UIForceTouchCapabilityAvailable ) support3DTouch = NO;
+    support3DTouch = [self.traitCollection respondsToSelector:@selector(forceTouchCapability)];
+    
+    if( support3DTouch )
+        [self registerForPreviewingWithDelegate:self sourceView:self.bear];
 }
 
 - (void)handlerShortcut{
@@ -129,7 +167,14 @@
     
     NSIndexPath *indexPath = [self.bear indexPathForRowAtPoint:location];
     
+    BOOL makeReturn = NO;
+    
+    if( [self.testData[indexPath.section] count] == 0 ) makeReturn = YES;
+    if( indexPath.section == self.timeLineIndexSection && indexPath.row == self.timeLineIndexRow ) makeReturn = YES;
+    
+    if( makeReturn ) return nil;
     if( !indexPath ) return nil;
+    
     CRClassTableViewCell *cell = [self.bear cellForRowAtIndexPath:indexPath];
 
     previewingContext.sourceRect = cell.frame;
@@ -161,7 +206,6 @@
         label.textAlignment = NSTextAlignmentCenter;
         label.textColor = [UIColor whiteColor];
         label.font = [CRSettings appFontOfSize:19];
-        label.text = self.title;
         label;
     });
     
@@ -218,7 +262,7 @@
     self.bear = ({
         UITableView *bear = [[UITableView alloc] initWithFrame:CGRectMake(0, 0, 0, 0) style:UITableViewStyleGrouped];
         bear.translatesAutoresizingMaskIntoConstraints = NO;
-        bear.sectionFooterHeight = 142.0f;
+        bear.sectionHeaderHeight = 142.0f;
         bear.sectionFooterHeight = 0;
         bear.contentInset = UIEdgeInsetsMake(STATUS_BAR_HEIGHT + 0, 0, 0, 0);
         bear.contentOffset = CGPointMake(0, - 0 - STATUS_BAR_HEIGHT);
@@ -293,9 +337,7 @@
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section{
-    NSUInteger offset = 0;
-    if( section == 0 ) offset = 1;
-    return [self.testData[section] count] == 0 ? 1 : [self.testData[section] count] + offset;
+    return [self.testData[section] count] == 0 ? 1 : [self.testData[section] count];
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section{
@@ -303,11 +345,21 @@
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath{
+    NSUInteger numberOfRowInSection = [self tableView:tableView numberOfRowsInSection:indexPath.section];
     
-    if( indexPath.row == 0 || indexPath.row + 1 == [self tableView:tableView numberOfRowsInSection:indexPath.section] )
-        return 66.0f + 12.0f;
+    if( self.timeLineIndexSection == indexPath.section && self.timeLineIndexRow == indexPath.row )
+        return 36.0f + 20.0f;
     
-    return 56.0f + 12.0f;
+    if( [self.testData[indexPath.section] count] == 1 )
+        return 76.0f + 20.0f;
+    
+    if( numberOfRowInSection == 1 )
+        return 36.0f + 20.0f;
+    
+    if( indexPath.row == 0 || indexPath.row + 1 == numberOfRowInSection )
+        return 66.0f + 20.0f;
+    
+    return 56.0f + 20.0f;
 }
 
 - (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section{
@@ -317,41 +369,48 @@
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath{
 
     CRClassTableViewCell *CRCell;
-    if( [self.testData[indexPath.section] count] == 0 ){
-        CRCell = [tableView dequeueReusableCellWithIdentifier:CRClassCellNoClassID];
-        if( !CRCell ){
-            CRCell = [[CRClassTableViewCell alloc] initFromNoClass];
-        }
-        
-//        [CRCell makeTopWhiteStroke];
-//        [CRCell makeBottomWhiteSpace];
-        
-        return CRCell;
-    }
     
-    if( indexPath.section == 0 && indexPath.row == [self.testData[0] count] ){
-        CRCell = [tableView dequeueReusableCellWithIdentifier:CRClassCellMomentID];
-        if( !CRCell ){
-            CRCell = [[CRClassTableViewCell alloc] initFromMomentWithColor:[UIColor randomColor]];
-        }
-        return CRCell;
+    if( [self.testData[indexPath.section] count] == 0 ){
+        
+        CRCell = [tableView dequeueReusableCellWithIdentifier:CRClassCellNoClassID];
+        return CRCell ? CRCell : [[CRClassTableViewCell alloc] initFromNoClass];
     }
     
     CRClassSchedule *schedule = [CRTestFunction scheduleFromNSArray:self.testData[indexPath.section][indexPath.row]];
+    
+    if( [schedule.scheduleID isEqualToString:TIME_LINE_NOW] ){
+        
+        CRCell = [tableView dequeueReusableCellWithIdentifier:CRClassCellMomentID];
+        return CRCell ? CRCell : [[CRClassTableViewCell alloc] initFromMomentWithColor:self.themeColor];
+    }
     
     CRCell = [tableView dequeueReusableCellWithIdentifier:CRClassCellDefaultID];
     if( !CRCell ){
         CRCell = [[CRClassTableViewCell alloc] initFromDefault];
     }
     
-    CRCell.wrapper.backgroundColor = [CRSettings CRAppColorTypes][[schedule.colorType lowercaseString]];
-    CRCell.startTime.text = schedule.timeStart;
-    CRCell.className.text = schedule.classname;
-    CRCell.location.text = schedule.location;
+    CRCell = ({
+        CRCell = [tableView dequeueReusableCellWithIdentifier:CRClassCellDefaultID];
+        if( !CRCell )
+            CRCell = [[CRClassTableViewCell alloc] initFromDefault];
+        
+        CRCell.wrapper.backgroundColor = [CRSettings CRAppColorTypes][[schedule.colorType lowercaseString]];
+        CRCell.startTime.text = schedule.timeStart;
+        CRCell.startTime.textColor = CRCell.wrapper.backgroundColor;
+        CRCell.className.text = [schedule.classname isEqualToString:@"Class name"] ? @"No Class Name" : schedule.classname;
+        CRCell.location.text = schedule.location;
+        CRCell;
+    });
     
-    if( indexPath.row == 0 ) [CRCell makeTopWhiteSpace]; else [CRCell makeTopWhiteStroke];
-    if( indexPath.row + 1 == [self tableView:tableView numberOfRowsInSection:indexPath.section] ) [CRCell makeBottomWhiteSpace];
-    else [CRCell makeBottomWhiteStroke];
+    if( indexPath.row == 0 )
+        [CRCell makeTopWhiteSpace];
+    else
+        [CRCell makeTopWhiteStroke];
+    
+    if( indexPath.row + 1 == [self tableView:tableView numberOfRowsInSection:indexPath.section] )
+        [CRCell makeBottomWhiteSpace];
+    else
+        [CRCell makeBottomWhiteStroke];
     
     return CRCell;
 }
@@ -375,7 +434,7 @@
         NSUInteger index = [con.identifier integerValue];
         UIView *view = self.headerViews[index];
         CGFloat fuck = view.frame.origin.y - scrollView.frame.size.height - scrollPoint.y;
-        con.constant = fuck / 3;
+        con.constant = fuck / 4;
     }];
     
     [self.view layoutIfNeeded];
@@ -390,8 +449,16 @@
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath{
-    NSLog(@"selected %@", indexPath);
-    [self animationFloatingButton:self.actionButton];
+    
+    BOOL makeAnimation = NO;
+    
+    if( [self.testData[indexPath.section] count] == 0 ) makeAnimation = YES;
+    if( indexPath.section == self.timeLineIndexSection && indexPath.row == self.timeLineIndexRow ) makeAnimation = YES;
+    
+    if( makeAnimation ){
+        [self animationFloatingButton:self.actionButton];
+        return;
+    }
     
     CRClassSchedule *schedule = [CRTestFunction scheduleFromNSArray:self.testData[indexPath.section][indexPath.row]];
     
@@ -410,17 +477,12 @@
 - (void)CRClassAddViewController{
     CRClassSchedule *schedule = [CRClassSchedule ClassCreateTempleSchedule];
     
-    CRClassAddViewController *CRClassAddVC = ({
-        CRClassAddViewController *CRClassAddVC = [CRClassAddViewController new];
-        CRClassAddVC.model = CRViewModelDefault;
-        CRClassAddVC.isPreview = NO;
-        CRClassAddVC.classSchedule = schedule;
-        CRClassAddVC;
+    CRClassScheduleAddViewController *CRClassScheduleAdd = ({
+        CRClassScheduleAddViewController *VC = [CRClassScheduleAddViewController new];
+        VC.type = 1;
+        VC.classSchedule = schedule;
+        VC;
     });
-    
-    CRClassScheduleAddViewController *CRClassScheduleAdd = [CRClassScheduleAddViewController new];
-    CRClassScheduleAdd.type = 1;
-    CRClassScheduleAdd.classSchedule = schedule;
     
     [self presentViewController:CRClassScheduleAdd animated:YES completion:nil];
 }

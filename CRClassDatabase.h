@@ -10,6 +10,8 @@
 #import "CRClassSchedule.h"
 #import "CRClassAccount.h"
 
+static NSString *const CRClassAccountDidChangeNotification = @"CRClassAccountDidChangeNotification";
+
 static NSString *const CRSUNDAY = @"sunday";
 static NSString *const CRMONDAY = @"monday";
 static NSString *const CRTUESDAY = @"tuesday";
@@ -30,6 +32,7 @@ static NSString *const CRSATURDAY = @"saturday";
 + (BOOL)deleteCRClassSchedule:(CRClassSchedule *)schedule;
 + (NSArray *)selectCRClassScheduleFromUser:(NSString *)user;
 + (CRClassSchedule *)CRClassScheduleFromRow:(NSArray *)row;
++ (NSArray *)rowFromCRClassSchedule:(CRClassSchedule *)schedule;
 //CRClassSchedule Databse func end
 
 //CRClassAccount Database func start

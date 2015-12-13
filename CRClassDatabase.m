@@ -33,10 +33,6 @@ static NSString *const CRClassAccountDataBaseKEY = @"CRCLASSACCOUNTDATABASEKEY";
     return [NSString stringWithFormat:@"%@%ld", user, scheduleID];
 }
 
-//+ (NSUInteger)integerFromTimeString:(NSString *)time{
-//    return [[NSString stringWithFormat:@"%@%@", [time substringWithRange:NSMakeRange(0, 2)], [time substringWithRange:NSMakeRange(3, 2)]] integerValue];
-//}
-
 + (NSArray *)sortCRClassScheduleByTime:(NSArray *)schedule{
     
     NSUInteger (^intergerFromTimeString)(NSString *) = ^(NSString *time){
@@ -46,8 +42,6 @@ static NSString *const CRClassAccountDataBaseKEY = @"CRCLASSACCOUNTDATABASEKEY";
     };
     
     return [schedule sortedArrayUsingComparator:^(id obj1, id obj2){
-//        NSUInteger number1 = [CRClassDatabase integerFromTimeString:(NSString *)obj1[3]];
-//        NSUInteger number2 = [CRClassDatabase integerFromTimeString:(NSString *)obj2[3]];
         NSUInteger number1 = intergerFromTimeString((NSString *)obj1[3]);
         NSUInteger number2 = intergerFromTimeString((NSString *)obj2[3]);
 
@@ -243,6 +237,9 @@ static NSString *const CRClassAccountDataBaseKEY = @"CRCLASSACCOUNTDATABASEKEY";
     }];
     
     [[NSUserDefaults standardUserDefaults] setObject:accounts forKey:CRClassAccountDataBaseKEY];
+    [[NSNotificationCenter defaultCenter] postNotificationName:CRClassAccountDidChangeNotification
+                                                        object:nil
+                                                      userInfo:nil];
     
     return YES;
 }
@@ -250,19 +247,35 @@ static NSString *const CRClassAccountDataBaseKEY = @"CRCLASSACCOUNTDATABASEKEY";
 + (BOOL)deleteCRClassAccountFromID:(NSString *)ID{
     if( ![CRClassDatabase haveCRClassAccount:ID] ) return YES;
     
+    __block NSString *key;
     NSMutableArray *accounts = [[NSMutableArray alloc] initWithArray:[CRClassDatabase selectAccountFromAll]];
     [accounts enumerateObjectsUsingBlock:^(id obj, NSUInteger index, BOOL *sS){
         NSArray *account = (NSArray *)obj;
-        if( [account[1] isEqualToString:ID] )
+        if( [account[1] isEqualToString:ID] ){
             [accounts removeObjectAtIndex:index];
+            key = [CRClassDatabase CRClassScheduleDatabaseKeyFromUser:accounts[1]];
+            *sS = YES;
+        }
     }];
     
+    [[NSUserDefaults standardUserDefaults] setObject:nil forKey:key];
     [[NSUserDefaults standardUserDefaults] setObject:accounts forKey:CRClassAccountDataBaseKEY];
     
     return YES;
 }
 
 + (BOOL)dropCRClassAccount{
+    NSArray *accounts = [CRClassDatabase selectAccountFromAll];
+    
+    NSString * (^BlockClassScheduleDatabaseKeyFromUser)(NSString *) = ^(NSString *user){
+        return [NSString stringWithFormat:@"%@%@", user, CRClassScheduleDatabaseKey];
+    };
+    
+    [accounts enumerateObjectsUsingBlock:^(id obj, NSUInteger index, BOOL *sS){
+        NSString *key = BlockClassScheduleDatabaseKeyFromUser((NSString *)obj[1]);
+        [[NSUserDefaults standardUserDefaults] setObject:nil forKey:key];
+    }];
+    
     [[NSUserDefaults standardUserDefaults] setObject:nil forKey:CRClassAccountDataBaseKEY];
     return YES;
 }
