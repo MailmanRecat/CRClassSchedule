@@ -92,7 +92,6 @@
     }
     
     [self makeToolBar];
-    [self addNotificationObserver];
 }
 
 - (void)viewWillAppear:(BOOL)animated{
@@ -105,6 +104,8 @@
         ((CRClassScheduleViewModel *)self.items[0]).dismissButton.hidden = NO;
         self.toolBar.hidden = NO;
     }
+    
+    [self addNotificationObserver];
 }
 
 - (void)viewDidAppear:(BOOL)animated{}
@@ -118,6 +119,7 @@
 }
 
 - (void)willKeyBoardChangeFrame:(NSNotification *)keyboardInfo{
+    NSLog(@"frame");
     NSDictionary *info = [keyboardInfo userInfo];
     CGFloat constant = self.view.frame.size.height - [[info objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue].origin.y;
     CGFloat duration = [info[UIKeyboardAnimationDurationUserInfoKey] floatValue];
@@ -179,15 +181,18 @@
     
     NSUInteger tag = sender.tag - 1000;
     
-    if( tag == self.currentIndex ){
-        if( [self.rightButton.titleLabel.text isEqualToString:@"Save"] ){
-            tag = 0;
-            [self scheduleSave];
-            NSLog(@"Save");
-        }else{
+    if( tag == 1 && self.type == 1 ){
+        [self scheduleSave];
+        return;
+    }
+    
+    if( tag == 2 ){
+        if( self.type == 1 ){
+            [self dismissViewControllerAnimated:YES completion:nil];
             return;
         }
-    };
+        tag = 0;
+    }
     
     if( tag == 0 ){
         self.leftButton.enabled = YES;
@@ -200,7 +205,6 @@
     }
     
     UIViewController *controller = self.items[tag];
-    UIViewController *missController = self.items[self.currentIndex];
     [self.view insertSubview:controller.view belowSubview:self.toolBar];
     
     CGFloat fromPoint = tag == 0 ? -37 : 37;
@@ -220,16 +224,6 @@
         animation;
     });
     
-    CABasicAnimation *opacityReverseAnimation = ({
-        CABasicAnimation *rAnimation = [CABasicAnimation animationWithKeyPath:@"opacity"];
-        rAnimation.fromValue = [NSNumber numberWithFloat:1.0f];
-        rAnimation.toValue = [NSNumber numberWithFloat:0.0f];
-        rAnimation.timingFunction = [CAMediaTimingFunction functionWithControlPoints:0.4 :0 :0.2 :1];
-        rAnimation.duration = 0.27;
-        rAnimation.removedOnCompletion = YES;
-        rAnimation;
-    });
-    
     CAAnimationGroup *group = ({
         CAAnimationGroup *group = [CAAnimationGroup animation];
         group.animations = @[ opacityAnimation, positionAnimation ];
@@ -241,7 +235,6 @@
     });
     
     [controller.view.layer addAnimation:group forKey:@"changeViewController"];
-//    [missController.view.layer addAnimation:opacityReverseAnimation forKey:@"missViewController"];
     self.currentIndex = tag;
 }
 
@@ -256,7 +249,7 @@
         UIButton *button = [[UIButton alloc] init];
         button.translatesAutoresizingMaskIntoConstraints = NO;
         button.tag = tag;
-        button.titleLabel.font = [CRSettings appFontOfSize:17 weight:UIFontWeightBold];
+        button.titleLabel.font = [CRSettings appFontOfSize:17 weight:UIFontWeightRegular];
         button.backgroundColor = [UIColor clearColor];
         [button addTarget:self action:@selector(perferItem:) forControlEvents:UIControlEventTouchUpInside];
         return button;

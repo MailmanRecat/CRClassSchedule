@@ -90,7 +90,7 @@
     [self.park makeShadowWithSize:CGSizeMake(0, 1) opacity:0.0f radius:1.7];
     
     self.dismissButton.titleLabel.font = [UIFont MaterialDesignIcons];
-    [self.dismissButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+    [self.dismissButton setTitleColor:[UIColor colorWithWhite:157 / 255.0 alpha:1] forState:UIControlStateNormal];
     [self.dismissButton setTitle:[UIFont mdiArrowLeft] forState:UIControlStateNormal];
     [self.dismissButton addTarget:self action:@selector(dismissSelf) forControlEvents:UIControlEventTouchUpInside];
     
@@ -218,7 +218,7 @@
 
 - (void)CRTextFieldViewController{
     CRTextFieldViewController *textField = [CRTextFieldViewController new];
-    textField.placeholderString = @"name";
+    textField.placeholderString = @"User name";
     textField.returnKeyType = UIReturnKeyNext;
     textField.transitioningDelegate = self.transitioningDelegate;
     [self presentViewController:textField animated:YES completion:nil];

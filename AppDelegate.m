@@ -16,37 +16,30 @@
 
 @implementation AppDelegate
 
-- (void)doShortItems{
+- (void)makeShortItems{
     UIApplicationShortcutItem *add = [[UIApplicationShortcutItem alloc] initWithType:@"shortcutItemAdd"
                                                                       localizedTitle:@"Add Class"
                                                                    localizedSubtitle:nil
                                                                                 icon:[UIApplicationShortcutIcon iconWithType:UIApplicationShortcutIconTypeAdd]
                                                                             userInfo:nil];
-    UIApplicationShortcutItem *addAccount = [[UIApplicationShortcutItem alloc] initWithType:@"shortcutItemAddAccount"
-                                                                             localizedTitle:@"Add Account"
-                                                                          localizedSubtitle:nil
-                                                                                       icon:[UIApplicationShortcutIcon iconWithType:UIApplicationShortcutIconTypeContact]
-                                                                                   userInfo:nil];
     
-    [UIApplication sharedApplication].shortcutItems = @[ add, addAccount ];
+    [UIApplication sharedApplication].shortcutItems = @[ add ];
 }
 
 - (void)application:(UIApplication *)application performActionForShortcutItem:(UIApplicationShortcutItem *)shortcutItem completionHandler:(void (^)(BOOL))completionHandler{
     
-    if( [shortcutItem.type isEqualToString:@"shortcutItemAdd"] )
-        self.window.rootViewController.title = @"startWithShortcutAdd";
+    NSLog(@"%@", shortcutItem.type);
+    if( [shortcutItem.type isEqualToString:@"shortcutItemAdd"] ){
+         [[NSNotificationCenter defaultCenter] postNotificationName:@"FUCK" object:self];
+    }
         
 }
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     
     [CRTestFunction runCRTestFunc];
-//    [CRTestFunction insertAAccount];
-//    [CRTestFunction testClass];
-//    [CRTestFunction accountTest];
-//    [CRTestFunction testScheduleSort];
     
-    [self doShortItems];
+    [self makeShortItems];
     return YES;
 }
 

@@ -122,7 +122,7 @@
     self.dismissButton = ({
         UIButton *dismiss = [[UIButton alloc] initWithFrame:CGRectMake(0, STATUS_BAR_HEIGHT, 56, 56)];
         dismiss.layer.cornerRadius = 56.0f / 2.0f;
-        dismiss.tag = 1000;
+        dismiss.tag = 1002;
         dismiss.titleLabel.font = [UIFont MaterialDesignIcons];
         [dismiss setTitle:[UIFont mdiArrowLeft] forState:UIControlStateNormal];
         [dismiss setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
@@ -161,8 +161,11 @@
                                                                constant:0];
     [self.view addConstraint:self.bearBottomLayoutGuide];
     
+    UIFont *appFont = [CRSettings appFontOfSize:17 weight:UIFontWeightRegular];
+    
     self.classname = ({
         CRTextFieldView *classname = [[CRTextFieldView alloc] initWithoutIcon];
+        classname.font = appFont;
         classname.delegate = self;
         classname.placeholder = @"Class name";
         classname;
@@ -171,6 +174,7 @@
     self.timeStart = ({
         CRButtonView *timeStart = [CRButtonView new];
         timeStart.icon.text = [UIFont mdiBell];
+        timeStart.textLabel.font = appFont;
         [timeStart addTarget:self action:@selector(CRTimeOptionsViewController) forControlEvents:UIControlEventTouchUpInside];
         timeStart;
     });
@@ -178,12 +182,14 @@
     self.location = ({
         CRButtonView *location = [CRButtonView new];
         location.icon.text = [UIFont mdiMapMarker];
+        location.textLabel.font = appFont;
         [location addTarget:self action:@selector(CRTextFieldViewController) forControlEvents:UIControlEventTouchUpInside];
         location;
     });
     
     self.teacher = ({
         CRTextFieldView *teacher = [CRTextFieldView new];
+        teacher.font = appFont;
         teacher.delegate = self;
         teacher.icon.text = [UIFont mdiAccount];
         teacher;
@@ -191,6 +197,7 @@
     
     self.weekday = ({
         CRButtonView *weekday = [CRButtonView new];
+        weekday.textLabel.font = appFont;
         weekday.icon.text = [UIFont mdiCalendar];
         [weekday addTarget:self action:@selector(CRWeekdayViewController) forControlEvents:UIControlEventTouchUpInside];
         weekday;
@@ -198,6 +205,7 @@
     
     self.timeLong = ({
         CRButtonView *timeLong = [CRButtonView new];
+        timeLong.textLabel.font = appFont;
         timeLong.icon.text = [UIFont mdiClock];
         [timeLong addTarget:self action:@selector(CRTimeOptionViewController) forControlEvents:UIControlEventTouchUpInside];
         timeLong;
@@ -205,6 +213,7 @@
     
     self.colorType = ({
         CRButtonView *colorType = [CRButtonView new];
+        colorType.textLabel.font = appFont;
         colorType.icon.text = [UIFont mdiCheckboxBlankCircle];
         [colorType addTarget:self action:@selector(CRColorPickerViewController) forControlEvents:UIControlEventTouchUpInside];
         colorType;
@@ -212,6 +221,7 @@
     
     self.userInfo = ({
         CRTextView *userInfo = [CRTextView new];
+        userInfo.textView.font = appFont;
         userInfo.icon.text = [UIFont mdiPencil];
         userInfo.textView.delegate = self;
         userInfo.textView.font = [CRSettings appFontOfSize:17];
@@ -395,9 +405,14 @@
     CRTextFieldViewController *textField = ({
         CRTextFieldViewController *textField = [CRTextFieldViewController new];
         textField.transitioningDelegate = self.transitionObject;
+        textField.placeholderString = @"Class room";
         textField.handler = self;
         textField;
     });
+    
+    [[NSNotificationCenter defaultCenter] removeObserver:self.parentViewController
+                                                    name:UIKeyboardWillChangeFrameNotification
+                                                  object:nil];
     
     [self presentViewController:textField animated:YES completion:nil];
 }

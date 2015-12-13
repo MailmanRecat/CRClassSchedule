@@ -73,7 +73,7 @@
         UILabel *parkTitle = [UILabel new];
         parkTitle.translatesAutoresizingMaskIntoConstraints = NO;
         parkTitle.textColor = [UIColor whiteColor];
-        parkTitle.font = [CRSettings appFontOfSize:33 weight:UIFontWeightMedium];
+        parkTitle.font = [CRSettings appFontOfSize:37 weight:UIFontWeightLight];
         parkTitle.adjustsFontSizeToFitWidth = YES;
         parkTitle.numberOfLines = 0;
         parkTitle;
@@ -149,6 +149,8 @@
     CRFuckCell *cell = [tableView dequeueReusableCellWithIdentifier:CRFuckCellID];
     if( !cell ){
         cell = [[CRFuckCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CRFuckCellID];
+        cell.nameLabel.textColor = [UIColor colorWithWhite:37 / 255.0 alpha:1];
+        cell.nameLabel.font = [CRSettings appFontOfSize:17 weight:UIFontWeightRegular];
     }
     
     cell.icon.text = self.icons[indexPath.row];

@@ -144,10 +144,10 @@
     [self.park makeShadowWithSize:CGSizeMake(0, 1) opacity:0 radius:1.7];
     
     self.optionName.text = @"Hour";
-    self.optionName.font = [CRSettings appFontOfSize:25];
+    self.optionName.font = [CRSettings appFontOfSize:25 weight:UIFontWeightRegular];
     self.optionName.textColor = [UIColor whiteColor];
     
-    self.option.font = [CRSettings appFontOfSize:29];
+    self.option.font = [CRSettings appFontOfSize:29 weight:UIFontWeightRegular];
     self.option.textColor = [UIColor whiteColor];
     
     backButton.layer.cornerRadius = 56.0f / 2.0f;
@@ -187,6 +187,7 @@
     border.backgroundColor = [UIColor colorWithWhite:217 / 255.0 alpha:1];
     
     [right setTitleColor:[UIColor CRColorType:CRColorTypeGoogleMapBlue] forState:UIControlStateNormal];
+    right.titleLabel.font = left.titleLabel.font = [CRSettings appFontOfSize:17 weight:UIFontWeightRegular];
     [right setTitle:@"OK" forState:UIControlStateNormal];
     [right addTarget:self action:@selector(dismissSelf) forControlEvents:UIControlEventTouchUpInside];
     [left setTitleColor:[UIColor colorWithWhite:127 / 255.0 alpha:1] forState:UIControlStateNormal];
@@ -266,7 +267,7 @@
     CRTimeOptionItem *cell = [tableView dequeueReusableCellWithIdentifier:CELL_ID];
     if( !cell ){
         cell = [[CRTimeOptionItem alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CELL_ID];
-        cell.timeLabel.font = [CRSettings appFontOfSize:19];
+        cell.timeLabel.font = [CRSettings appFontOfSize:19 weight:UIFontWeightRegular];
         cell.timeLabel.textColor = [UIColor colorWithWhite:127 / 255.0  alpha:1];
     }
     

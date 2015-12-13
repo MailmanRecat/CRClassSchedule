@@ -32,14 +32,16 @@ static NSString *const TIME_LINE_NOW = @"TIME_LINE_NOW";
 @interface ViewController ()<UIScrollViewDelegate, UIViewControllerPreviewingDelegate, UITableViewDataSource, UITableViewDelegate>
 
 @property( nonatomic, strong ) CRTransitionAnimationObject *transitionAnimationDafult;
+
 @property( nonatomic, strong ) UIView *park;
 @property( nonatomic, strong ) NSLayoutConstraint *parkLayoutGuide;
 @property( nonatomic, strong ) UILabel *titleLabel;
+
 @property( nonatomic, strong ) UIButton *actionButton;
 @property( nonatomic, strong ) UIButton *actionButtonAccount;
 @property( nonatomic, assign ) BOOL CAAnimationFlag;
-@property( nonatomic, strong ) UITableView *bear;
 
+@property( nonatomic, strong ) UITableView *bear;
 @property( nonatomic, strong ) NSArray *headerViews;
 @property( nonatomic, strong ) NSArray *headerViewsLayoutGuide;
 @property( nonatomic, strong ) NSMutableArray *shouldRelayoutGuide;
@@ -50,6 +52,9 @@ static NSString *const TIME_LINE_NOW = @"TIME_LINE_NOW";
 
 @property( nonatomic, assign ) NSUInteger timeLineIndexSection;
 @property( nonatomic, assign ) NSUInteger timeLineIndexRow;
+
+@property( nonatomic, assign ) BOOL isViewDidAppear;
+@property( nonatomic, assign ) BOOL shouldPresentAddClassViewController;
 
 @end
 
@@ -67,11 +72,17 @@ static NSString *const TIME_LINE_NOW = @"TIME_LINE_NOW";
     [self doActionButton];
     [self doHeaderViews];
     
-    [self handlerShortcut];
     [self check3DTouch];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(handlerShortcut)
+                                                 name:@"FUCK"
+                                               object:nil];
 }
 
 - (void)viewWillAppear:(BOOL)animated{
+    [super viewWillAppear:animated];
+    
     CRClassAccount *currentAccount = [CRClassCurrent account];
     self.themeColor = [CRSettings CRAppColorTypes][[currentAccount.colorType lowercaseString]];
     
@@ -118,9 +129,21 @@ static NSString *const TIME_LINE_NOW = @"TIME_LINE_NOW";
     
     self.testData = schedules;
     [self.bear reloadData];
+    
+    [self.bear scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:self.timeLineIndexSection]
+                     atScrollPosition:UITableViewScrollPositionTop
+                             animated:NO];
 }
 
 - (void)viewDidAppear:(BOOL)animated{
+    [super viewDidAppear:animated];
+    self.isViewDidAppear = YES;
+    
+    if( self.shouldPresentAddClassViewController ){
+        [self CRClassAddViewController];
+        self.shouldPresentAddClassViewController = NO;
+    }
+    
     [self.shouldRelayoutGuide enumerateObjectsUsingBlock:^(id obj, NSUInteger i, BOOL *sS){
         NSLayoutConstraint *con = (NSLayoutConstraint *)obj;
         NSUInteger index = [con.identifier integerValue];
@@ -131,28 +154,21 @@ static NSString *const TIME_LINE_NOW = @"TIME_LINE_NOW";
     [self.bear layoutIfNeeded];
 }
 
-- (void)addNotificationObserver{
-    NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
-    
-//    [center addObserver:self
-//               selector:@selector(reloadBear)
-//                   name:CRClassAccountDidChangeNotification
-//                 object:nil];
-}
-
 - (void)check3DTouch{
     BOOL support3DTouch = YES;
     
     if( self.traitCollection.forceTouchCapability != UIForceTouchCapabilityAvailable ) support3DTouch = NO;
-    support3DTouch = [self.traitCollection respondsToSelector:@selector(forceTouchCapability)];
+    if( ![self.traitCollection respondsToSelector:@selector(forceTouchCapability)] ) support3DTouch = NO;
     
     if( support3DTouch )
         [self registerForPreviewingWithDelegate:self sourceView:self.bear];
 }
 
 - (void)handlerShortcut{
-    if( [self.title isEqualToString:@"startWithShortcutAdd"] )
+    if( self.isViewDidAppear )
         [self CRClassAddViewController];
+    else
+        self.shouldPresentAddClassViewController = YES;
 }
 
 - (void)previewingContext:(id<UIViewControllerPreviewing>)previewingContext commitViewController:(UIViewController *)viewControllerToCommit{

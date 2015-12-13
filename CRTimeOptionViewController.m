@@ -118,10 +118,10 @@
     self.park.backgroundColor = [UIColor CRColorType:CRColorTypeGoogleMapBlue];
     [self.park makeShadowWithSize:CGSizeMake(0, 1) opacity:0 radius:1.7];
     
-    self.optionName.font = [CRSettings appFontOfSize:25];
+    self.optionName.font = [CRSettings appFontOfSize:25 weight:UIFontWeightRegular];
     self.optionName.textColor = [UIColor whiteColor];
     
-    self.option.font = [CRSettings appFontOfSize:29];
+    self.option.font = [CRSettings appFontOfSize:29 weight:UIFontWeightRegular];
     self.option.textColor = [UIColor whiteColor];
     
     backButton.layer.cornerRadius = 56.0f / 2.0f;
@@ -196,10 +196,9 @@
     CRTimeOptionItem *cell = [tableView dequeueReusableCellWithIdentifier:CELL_ID];
     if( !cell ){
         cell = [[CRTimeOptionItem alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CELL_ID];
+        cell.timeLabel.font = [CRSettings appFontOfSize:19 weight:UIFontWeightRegular];
+        cell.timeLabel.textColor = [UIColor colorWithWhite:127 / 255.0  alpha:1];
     }
-    
-    cell.timeLabel.font = [CRSettings appFontOfSize:19];
-    cell.timeLabel.textColor = [UIColor colorWithWhite:127 / 255.0  alpha:1];
     
     if( self.type == CRTimeOptionTypeClassmins )
         cell.timeLabel.text = [self classminsWithIndexPath:indexPath];
