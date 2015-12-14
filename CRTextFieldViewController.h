@@ -10,7 +10,6 @@
 
 @protocol CRTextFieldVCHandler <NSObject>
 
-- (BOOL)CRTextFieldVCShouldReturn:(UIViewController *)viewController;
 - (void)CRTextFieldVCDidDismiss:(NSString *)textFieldString;
 
 @end

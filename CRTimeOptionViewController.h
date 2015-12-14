@@ -10,7 +10,8 @@
 
 typedef NS_ENUM(NSUInteger, CRTimeOptionType){
     CRTimeOptionTypeClassmins = 0,
-    CRTimeOptionTypeWeekday
+    CRTimeOptionTypeWeekday,
+    CRTimeOptionTypeLanguage
 };
 
 static NSString *const CRTimeOptionDidSelectedNotificationKey = @"CRTimeOptionDidSelectedNotificationKey";
@@ -29,6 +30,7 @@ static NSString *const CRTimeOptionTypeKey = @"CRTimeOptionTypekey";
 @property( nonatomic, assign ) CRTimeOptionType type;
 @property( nonatomic, assign ) NSUInteger weekday;
 @property( nonatomic, assign ) NSUInteger mins;
+@property( nonatomic, assign ) NSUInteger lang;
 
 @property( nonatomic, strong ) UIColor *themeColor;
 

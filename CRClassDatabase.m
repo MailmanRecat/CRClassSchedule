@@ -36,7 +36,11 @@ static NSString *const CRClassAccountDataBaseKEY = @"CRCLASSACCOUNTDATABASEKEY";
 + (NSArray *)sortCRClassScheduleByTime:(NSArray *)schedule{
     
     NSUInteger (^intergerFromTimeString)(NSString *) = ^(NSString *time){
-        NSUInteger timeValue = [[NSString stringWithFormat:@"%@%@", [time substringWithRange:NSMakeRange(0, 2)], [time substringWithRange:NSMakeRange(3, 2)]] integerValue];
+        
+        NSUInteger timeValue = 0;
+        if( time.length < 5 == NO ){
+            timeValue = [[NSString stringWithFormat:@"%@%@", [time substringWithRange:NSMakeRange(0, 2)], [time substringWithRange:NSMakeRange(3, 2)]] integerValue];
+        }
         
         return timeValue;
     };

@@ -14,6 +14,7 @@
 #import "UIFont+MaterialDesignIcons.h"
 #import "UIColor+Theme.h"
 #import "CRSettings.h"
+#import "CRLanguage.h"
 #import "HuskyButton.h"
 #import "UIColor+CRColor.h"
 #import "CRTimeOptionItem.h"
@@ -22,6 +23,7 @@
 @interface CRTimeOptionViewController ()<UITableViewDataSource, UITableViewDelegate>
 
 @property( nonatomic, strong ) UIView *park;
+@property( nonatomic, strong ) UIButton *dismissButton;
 @property( nonatomic, strong ) UILabel *optionName;
 @property( nonatomic, strong ) UILabel *option;
 
@@ -42,7 +44,6 @@
     
     [self doBear];
     [self doPark];
-//    [self doButton];
     [self checkOptionString];
 }
 
@@ -56,6 +57,10 @@
         [self.bear selectRowAtIndexPath:[NSIndexPath indexPathForRow:self.mins inSection:0]
                                animated:NO
                          scrollPosition:UITableViewScrollPositionTop];
+    if( self.type == CRTimeOptionTypeLanguage )
+        [self.bear selectRowAtIndexPath:[NSIndexPath indexPathForRow:self.lang inSection:0]
+                               animated:NO
+                         scrollPosition:UITableViewScrollPositionNone];
     
     if( self.themeColor )
         self.park.backgroundColor = self.themeColor;
@@ -68,9 +73,23 @@
     if( self.type == CRTimeOptionTypeClassmins ){
         self.optionString = self.option.text = [self classminsWithIndexPath:[NSIndexPath indexPathForRow:self.mins inSection:0]];
         self.optionName.text = @"Minutes";
+        
     }else if( self.type == CRTimeOptionTypeWeekday ){
         self.optionString = self.option.text = self.weekday ? self.weeknames[self.weekday - 1] : [CRSettings weekday];
         self.optionName.text = @"weekday";
+        
+    }else if( self.type == CRTimeOptionTypeLanguage ){
+        self.optionName.text = @"Language";
+        NSString *lang = [CRLanguage currentLanguage];
+        if( lang == CRLanguageEN ){
+            self.lang = 0;
+            self.optionString = CRLanguageEN;
+            self.option.text = @"English";
+        }else{
+            self.lang = 1;
+            self.optionString = CRLanguageCN;
+            self.option.text = @"Chinese";
+        }
     }
 }
 
@@ -83,52 +102,52 @@
 }
 
 - (void)doPark{
-    NSMutableArray *cons = [NSMutableArray new];
-    self.park = [UIView new];
-    self.optionName = [UILabel new];
-    self.option = [UILabel new];
-    HuskyButton *backButton = [HuskyButton new];
-    [self.view addAutolayoutSubviews:@[ self.park ]];
-    [self.park addAutolayoutSubviews:@[ backButton, self.optionName, self.option ]];
-    [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:self.park to:self.view type:EdgeTopLeftRightZero]];
-    [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearFixed:self.park type:SpactecledBearFixedHeight
-                                                             constant:56 + 72 + STATUS_BAR_HEIGHT]];
-    [self.view addConstraints:cons];
-    [cons removeAllObjects];
-    [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:self.optionName to:self.park type:EdgeTopZero constant:STATUS_BAR_HEIGHT]];
-    [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:self.optionName to:self.park type:EdgeRightZero]];
-    [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearFixed:self.optionName type:SpactecledBearFixedHeight constant:56]];
-    [cons addObject:[NSLayoutConstraint constraintWithItem:backButton
-                                                 attribute:NSLayoutAttributeRight
-                                                 relatedBy:NSLayoutRelationEqual
-                                                    toItem:self.optionName
-                                                 attribute:NSLayoutAttributeLeft
-                                                multiplier:1.0
-                                                  constant:-8]];
-    [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:self.option to:self.park type:EdgeLeftRightZero constant:56 + 8]];
-    [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:self.option to:self.park type:EdgeBottomZero]];
-    [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearFixed:self.option type:SpactecledBearFixedHeight constant:72]];
-    [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:backButton to:self.park type:EdgeLeftZero]];
-    [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:backButton to:self.park type:EdgeTopZero
-                                                            constant:STATUS_BAR_HEIGHT]];
-    [cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearFixed:backButton type:SpactecledBearFixedEqual constant:56]];
-    [self.park addConstraints:cons];
-    [cons removeAllObjects];
     
-    self.park.backgroundColor = [UIColor CRColorType:CRColorTypeGoogleMapBlue];
-    [self.park makeShadowWithSize:CGSizeMake(0, 1) opacity:0 radius:1.7];
+    self.park = ({
+        UIView *park = [UIView new];
+        park.translatesAutoresizingMaskIntoConstraints = NO;
+        park.backgroundColor = [UIColor CRColorType:CRColorTypeGoogleMapBlue];
+        [park makeShadowWithSize:CGSizeMake(0, 1) opacity:0 radius:1.7];
+        park;
+    });
     
-    self.optionName.font = [CRSettings appFontOfSize:25 weight:UIFontWeightRegular];
-    self.optionName.textColor = [UIColor whiteColor];
+    self.dismissButton = ({
+        UIButton *dismiss = [[UIButton alloc] initWithFrame:CGRectMake(0, STATUS_BAR_HEIGHT, 56, 56)];
+        dismiss.layer.cornerRadius = 56.0f / 2.0f;
+        dismiss.titleLabel.font = [UIFont MaterialDesignIcons];
+        [dismiss setTitle:[UIFont mdiArrowLeft] forState:UIControlStateNormal];
+        [dismiss setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+        [dismiss addTarget:self action:@selector(dismissSelf) forControlEvents:UIControlEventTouchUpInside];
+        dismiss;
+    });
     
-    self.option.font = [CRSettings appFontOfSize:29 weight:UIFontWeightRegular];
-    self.option.textColor = [UIColor whiteColor];
+    UILabel *label;
+    self.optionName = ({
+        label = [UILabel new];
+        label.translatesAutoresizingMaskIntoConstraints = NO;
+        label.font = [CRSettings appFontOfSize:25 weight:UIFontWeightRegular];
+        label.textColor = [UIColor whiteColor];
+        label;
+    });
     
-    backButton.layer.cornerRadius = 56.0f / 2.0f;
-    backButton.titleLabel.font = [UIFont MaterialDesignIcons];
-    [backButton setTitle:[UIFont mdiArrowLeft] forState:UIControlStateNormal];
-    [backButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-    [backButton addTarget:self action:@selector(dismissSelf) forControlEvents:UIControlEventTouchUpInside];
+    self.option = ({
+        label = [UILabel new];
+        label.translatesAutoresizingMaskIntoConstraints = NO;
+        label.font = [CRSettings appFontOfSize:29 weight:UIFontWeightRegular];
+        label.textColor = self.optionName.textColor;
+        label;
+    });
+    
+    [self.view addSubview:self.park];
+    [self.park addSubview:self.dismissButton];
+    [self.park addSubview:self.optionName];
+    [self.park addSubview:self.option];
+    
+    [CRLayout view:@[ self.park, self.view ] type:CREdgeTopLeftRight constants:UIEdgeInsetsMake(0, 0, 0, 0)];
+    [CRLayout view:@[ self.park ] type:CRFixedHeight constants:UIEdgeInsetsMake(0, 56 + 72 + STATUS_BAR_HEIGHT, 0, 0)];
+    
+    [CRLayout view:@[ self.optionName, self.park ] type:CREdgeAround constants:UIEdgeInsetsMake(STATUS_BAR_HEIGHT, 64, -72, -8)];
+    [CRLayout view:@[ self.option, self.park ] type:CREdgeAround constants:UIEdgeInsetsMake(STATUS_BAR_HEIGHT + 56, 64, 0, -8)];
 }
 
 - (void)doButton{
@@ -187,6 +206,8 @@
         return 20;
     if( self.type == CRTimeOptionTypeWeekday )
         return 7;
+    if( self.type == CRTimeOptionTypeLanguage )
+        return 2;
     
     return 0;
 }
@@ -204,6 +225,12 @@
         cell.timeLabel.text = [self classminsWithIndexPath:indexPath];
     if( self.type == CRTimeOptionTypeWeekday )
         cell.timeLabel.text = self.weeknames[indexPath.row];
+    if( self.type == CRTimeOptionTypeLanguage ){
+        if( indexPath.row == 0 )
+            cell.timeLabel.text = @"English";
+        else
+            cell.timeLabel.text = @"Chinese";
+    }
     
     return cell;
 }
@@ -213,6 +240,16 @@
         self.option.text = self.optionString = [self classminsWithIndexPath:indexPath];
     if( self.type == CRTimeOptionTypeWeekday )
         self.option.text = self.optionString = self.weeknames[indexPath.row];
+    if( self.type == CRTimeOptionTypeLanguage ){
+        if( indexPath.row == 0 ){
+            self.optionString = CRLanguageEN;
+            self.option.text = @"English";
+        }else{
+            self.optionString = CRLanguageCN;
+            self.option.text = @"Chinese";
+        }
+    }
+        
     
     [self dismissSelf];
 }

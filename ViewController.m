@@ -23,7 +23,6 @@
 #import "CRTransitionAnimationObject.h"
 #import "CRAccountsViewController.h"
 #import "CRClassScheduleAddViewController.h"
-#import "CRClassAddViewController.h"
 
 #import "CRTestFunction.h"
 
@@ -94,7 +93,7 @@ static NSString *const TIME_LINE_NOW = @"TIME_LINE_NOW";
         NSString *nowTimeString = ({
             NSDateComponents *now = [TimeTalkerBird currentDate];
             NSString *(^formatTimeFromStirng)(NSUInteger) = ^(NSUInteger time){
-                return time < 9 ? [NSString stringWithFormat:@"0%ld", time] : [NSString stringWithFormat:@"%ld", time];
+                return time < 10 ? [NSString stringWithFormat:@"0%ld", time] : [NSString stringWithFormat:@"%ld", time];
             };
             [NSString stringWithFormat:@"%@:%@", formatTimeFromStirng(now.hour), formatTimeFromStirng(now.minute)];
         });
@@ -133,6 +132,15 @@ static NSString *const TIME_LINE_NOW = @"TIME_LINE_NOW";
     [self.bear scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:self.timeLineIndexSection]
                      atScrollPosition:UITableViewScrollPositionTop
                              animated:NO];
+    
+    [self.shouldRelayoutGuide enumerateObjectsUsingBlock:^(id obj, NSUInteger i, BOOL *sS){
+        NSLayoutConstraint *con = (NSLayoutConstraint *)obj;
+        NSUInteger index = [con.identifier integerValue];
+        UIView *view = self.headerViews[index];
+        CGFloat fuck = view.frame.origin.y - self.view.frame.size.height - self.bear.contentOffset.y;
+        con.constant = fuck / 4;
+    }];
+    [self.bear layoutIfNeeded];
 }
 
 - (void)viewDidAppear:(BOOL)animated{
@@ -143,15 +151,6 @@ static NSString *const TIME_LINE_NOW = @"TIME_LINE_NOW";
         [self CRClassAddViewController];
         self.shouldPresentAddClassViewController = NO;
     }
-    
-    [self.shouldRelayoutGuide enumerateObjectsUsingBlock:^(id obj, NSUInteger i, BOOL *sS){
-        NSLayoutConstraint *con = (NSLayoutConstraint *)obj;
-        NSUInteger index = [con.identifier integerValue];
-        UIView *view = self.headerViews[index];
-        CGFloat fuck = view.frame.origin.y - self.view.frame.size.height - self.bear.contentOffset.y;
-        con.constant = fuck / 4;
-    }];
-    [self.bear layoutIfNeeded];
 }
 
 - (void)check3DTouch{

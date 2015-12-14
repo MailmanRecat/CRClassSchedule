@@ -104,11 +104,11 @@
         ((CRClassScheduleViewModel *)self.items[0]).dismissButton.hidden = NO;
         self.toolBar.hidden = NO;
     }
-    
-    [self addNotificationObserver];
 }
 
-- (void)viewDidAppear:(BOOL)animated{}
+- (void)viewDidAppear:(BOOL)animated{
+    [self addNotificationObserver];
+}
 
 - (void)addNotificationObserver{
     NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
@@ -119,7 +119,6 @@
 }
 
 - (void)willKeyBoardChangeFrame:(NSNotification *)keyboardInfo{
-    NSLog(@"frame");
     NSDictionary *info = [keyboardInfo userInfo];
     CGFloat constant = self.view.frame.size.height - [[info objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue].origin.y;
     CGFloat duration = [info[UIKeyboardAnimationDurationUserInfoKey] floatValue];
@@ -154,7 +153,7 @@
     [self.rightButton setTitleColor:color forState:UIControlStateNormal];
 }
 
-- (void)scheduleSave{
+- (void)scheduleSave:(BOOL)dismiss{
     NSLog(@"%@", self.classSchedule.scheduleID);
     NSLog(@"%@", self.classSchedule.user);
     NSLog(@"%@", self.classSchedule.weekday);
@@ -173,7 +172,7 @@
     else
         saved = [CRClassDatabase updateCRClassSchedule:self.classSchedule];
     
-    if( saved )
+    if( saved && dismiss )
         [self dismissViewControllerAnimated:YES completion:nil];
 }
 
@@ -182,7 +181,7 @@
     NSUInteger tag = sender.tag - 1000;
     
     if( tag == 1 && self.type == 1 ){
-        [self scheduleSave];
+        [self scheduleSave:YES];
         return;
     }
     
@@ -193,6 +192,11 @@
         }
         tag = 0;
     }
+    
+    if( tag == self.currentIndex && [self.rightButton.titleLabel.text isEqualToString:@"Save"] ){
+        [self scheduleSave:NO];
+        tag = 0;
+    };
     
     if( tag == 0 ){
         self.leftButton.enabled = YES;

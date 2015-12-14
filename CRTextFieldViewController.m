@@ -25,6 +25,10 @@
 
 @property( nonatomic, strong ) UIView *keyboardView;
 
+@property( nonatomic, strong ) UIView *bottomBear;
+@property( nonatomic, strong ) NSLayoutConstraint *bottomBearLayoutGuide;
+@property( nonatomic, strong ) UIButton *doneButton;
+
 @end
 
 @implementation CRTextFieldViewController
@@ -34,9 +38,15 @@
     self.view.backgroundColor = [UIColor whiteColor];
     
     [self doPark];
+    [self makeBottomBear];
+    
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(willKeyboardShow)
                                                  name:UIKeyboardWillShowNotification
+                                               object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(willKeyBoardChangeFrame:)
+                                                 name:UIKeyboardWillChangeFrameNotification
                                                object:nil];
 }
 
@@ -107,6 +117,40 @@
     [CRLayout view:@[ self.parkTextField, self.park ] type:CREdgeAround constants:UIEdgeInsetsMake(0, parkHeight, 0, 0)];
 }
 
+- (void)makeBottomBear{
+    self.bottomBear = ({
+        UIView *bear = [UIView new];
+        bear.translatesAutoresizingMaskIntoConstraints = NO;
+        bear.backgroundColor = [UIColor whiteColor];
+        [bear makeShadowWithSize:CGSizeMake(0, -1) opacity:0.07 radius:3];
+        bear;
+    });
+    [self.view addSubview:self.bottomBear];
+    
+    self.doneButton = ({
+        UIButton *done = [UIButton new];
+        done.translatesAutoresizingMaskIntoConstraints = NO;
+        done.backgroundColor = [UIColor whiteColor];
+        done.titleLabel.font = [CRSettings appFontOfSize:19 weight:UIFontWeightRegular];
+        [done setTitle:@"Done" forState:UIControlStateNormal];
+        [done setTitleColor:[UIColor colorWithWhite:97 / 255.0 alpha:1] forState:UIControlStateNormal];
+        [done addTarget:self action:@selector(dismissSelf) forControlEvents:UIControlEventTouchUpInside];
+        done;
+    });
+    [self.bottomBear addSubview:self.doneButton];
+    
+    [CRLayout view:@[ self.bottomBear, self.view ] type:CREdgeLeftRight];
+    [CRLayout view:@[ self.bottomBear ] type:CRFixedHeight constants:UIEdgeInsetsMake(0, 48, 0, 0)];
+    self.bottomBearLayoutGuide = [CRLayout view:@[ self.bottomBear, self.view ]
+                                      attribute:NSLayoutAttributeBottom
+                                       relateBy:NSLayoutRelationEqual
+                                      attribute:NSLayoutAttributeBottom
+                                     multiplier:1.0
+                                       constant:0];
+    [self.view addConstraint:self.bottomBearLayoutGuide];
+    [CRLayout view:@[ self.doneButton, self.bottomBear ] type:CREdgeAround];
+}
+
 - (BOOL)textFieldShouldEndEditing:(UITextField *)textField{
     [textField resignFirstResponder];
     return YES;
@@ -114,20 +158,7 @@
 
 - (BOOL)textFieldShouldReturn:(UITextField *)textField{
     
-//    if( self.handler && [self.handler respondsToSelector:@selector(CRTextFieldVCShouldReturn:)] ){
-//        BOOL step = [self.handler CRTextFieldVCShouldReturn:self];
-//        if( step ){
-//            [self dismissSelf];
-//            return YES;
-//        }
-//    }else{
-//        [self dismissSelf];
-//        return YES;
-//    }
-    
     [textField resignFirstResponder];
-    [self dismissSelf];
-    
     return YES;
 }
 
@@ -151,12 +182,34 @@
     
 }
 
+- (void)willKeyBoardChangeFrame:(NSNotification *)keyboardInfo{
+    NSLog(@"textfield");
+    NSDictionary *info = [keyboardInfo userInfo];
+    CGFloat constant = self.view.frame.size.height - [[info objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue].origin.y;
+    CGFloat duration = [info[UIKeyboardAnimationDurationUserInfoKey] floatValue];
+    UIViewAnimationOptions option = [info[UIKeyboardAnimationCurveUserInfoKey] integerValue];
+    
+    self.bottomBearLayoutGuide.constant = -constant;
+    [UIView animateWithDuration:duration
+                          delay:0.0f
+                        options:option
+                     animations:^{
+                         [self.view layoutIfNeeded];
+                     }
+                     completion:^(BOOL isFinished){}];
+}
+
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
 }
 
 - (void)dismissSelf{
     [self dismissViewControllerAnimated:YES completion:^{
+        
+        [[NSNotificationCenter defaultCenter] removeObserver:self
+                                                        name:UIKeyboardWillChangeFrameNotification
+                                                      object:nil];
+        
         if( self.handler && [self.handler respondsToSelector:@selector(CRTextFieldVCDidDismiss:)] )
             [self.handler CRTextFieldVCDidDismiss:self.parkTextField.text];
     }];

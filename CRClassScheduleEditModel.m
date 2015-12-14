@@ -424,10 +424,6 @@
     }
 }
 
-- (BOOL)CRTextFieldVCShouldReturn:(UIViewController *)viewController{
-    return YES;
-}
-
 - (void)CRColorPickerViewController{
     MOREColorPickerView *colorPicker = ({
         MOREColorPickerView *picker = [MOREColorPickerView new];

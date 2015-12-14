@@ -24,8 +24,6 @@
 
 #import "CRDebugViewController.h"
 
-#import "CRClassAddViewController.h"
-
 @interface CRAccountsViewController()<UIScrollViewDelegate, UITableViewDataSource, UITableViewDelegate>
 
 @property( nonatomic, strong ) NSMutableArray *cons;
