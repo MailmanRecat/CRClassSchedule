@@ -164,15 +164,13 @@
 
 - (void)willKeyboardShow{
     
-    if( self.keyboardView == nil ){
-        for( UIWindow *window in [[UIApplication sharedApplication] windows] ){
-            if( [window isKindOfClass:NSClassFromString(@"UIRemoteKeyboardWindow")] ){
-                for( UIView *subview in window.subviews ){
-                    if( [subview isKindOfClass:NSClassFromString(@"UIInputSetContainerView")] ){
-                        for( UIView *subsubview in subview.subviews ){
-                            if( [subsubview isKindOfClass:NSClassFromString(@"UIInputSetHostView")] ){
-                                self.keyboardView = subsubview;
-                            }
+    for( UIWindow *window in [[UIApplication sharedApplication] windows] ){
+        if( [window isKindOfClass:NSClassFromString(@"UIRemoteKeyboardWindow")] ){
+            for( UIView *subview in window.subviews ){
+                if( [subview isKindOfClass:NSClassFromString(@"UIInputSetContainerView")] ){
+                    for( UIView *subsubview in subview.subviews ){
+                        if( [subsubview isKindOfClass:NSClassFromString(@"UIInputSetHostView")] ){
+                            self.keyboardView = subsubview;
                         }
                     }
                 }
@@ -183,7 +181,6 @@
 }
 
 - (void)willKeyBoardChangeFrame:(NSNotification *)keyboardInfo{
-    NSLog(@"textfield");
     NSDictionary *info = [keyboardInfo userInfo];
     CGFloat constant = self.view.frame.size.height - [[info objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue].origin.y;
     CGFloat duration = [info[UIKeyboardAnimationDurationUserInfoKey] floatValue];

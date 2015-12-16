@@ -19,23 +19,31 @@
 #import "HuskyButton.h"
 #import "CRClassTableViewCell.h"
 #import "TimeTalkerBird.h"
+#import "GoogleInboxLoadingView.h"
 
 #import "CRTransitionAnimationObject.h"
 #import "CRAccountsViewController.h"
 #import "CRClassScheduleAddViewController.h"
 
 #import "CRTestFunction.h"
+#import "CRActionWindow.h"
+#import "UIWindow+CRAction.h"
 
 static NSString *const TIME_LINE_NOW = @"TIME_LINE_NOW";
 
-@interface ViewController ()<UIScrollViewDelegate, UIViewControllerPreviewingDelegate, UITableViewDataSource, UITableViewDelegate>
+@interface ViewController ()<CRClassAddViewControllerPreviewActionHandler, UIScrollViewDelegate, UIViewControllerPreviewingDelegate, UITableViewDataSource, UITableViewDelegate>{
+    
+    dispatch_queue_t queue;
+}
 
 @property( nonatomic, strong ) CRTransitionAnimationObject *transitionAnimationDafult;
 
 @property( nonatomic, strong ) UIView *park;
 @property( nonatomic, strong ) NSLayoutConstraint *parkLayoutGuide;
 @property( nonatomic, strong ) UILabel *titleLabel;
+@property( nonatomic, strong ) UIImageView *parkImageView;
 
+@property( nonatomic, strong ) GoogleInboxLoadingView *loadingView;
 @property( nonatomic, strong ) UIButton *actionButton;
 @property( nonatomic, strong ) UIButton *actionButtonAccount;
 @property( nonatomic, assign ) BOOL CAAnimationFlag;
@@ -70,18 +78,48 @@ static NSString *const TIME_LINE_NOW = @"TIME_LINE_NOW";
     [self doPark];
     [self doActionButton];
     [self doHeaderViews];
+    [self makeLoading];
     
+    [self addNotificationObserver];
     [self check3DTouch];
     
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(handlerShortcut)
-                                                 name:@"FUCK"
-                                               object:nil];
+    [self makeClassSchedule];
 }
 
 - (void)viewWillAppear:(BOOL)animated{
     [super viewWillAppear:animated];
     
+    if( !self.isViewDidAppear ){
+        [self makeClassAccount];
+        [self.bear scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:self.timeLineIndexSection]
+                         atScrollPosition:UITableViewScrollPositionTop
+                                 animated:NO];
+    }
+}
+
+- (void)viewDidAppear:(BOOL)animated{
+    [super viewDidAppear:animated];
+    
+    self.isViewDidAppear = YES;
+    
+    __block UIView *view;
+    [self.shouldRelayoutGuide enumerateObjectsUsingBlock:^(id obj, NSUInteger i, BOOL *sS){
+        NSLayoutConstraint *con = (NSLayoutConstraint *)obj;
+        con.constant = ({
+            view = self.headerViews[[con.identifier integerValue]];
+            CGFloat fuck = view.frame.origin.y - self.view.frame.size.height - self.bear.contentOffset.y;
+            fuck / 4;
+        });
+    }];
+    [self.bear layoutIfNeeded];
+    
+    if( self.shouldPresentAddClassViewController ){
+        [self CRClassAddViewController];
+        self.shouldPresentAddClassViewController = NO;
+    }
+}
+
+- (void)makeClassAccount{
     CRClassAccount *currentAccount = [CRClassCurrent account];
     self.themeColor = [CRSettings CRAppColorTypes][[currentAccount.colorType lowercaseString]];
     
@@ -89,68 +127,95 @@ static NSString *const TIME_LINE_NOW = @"TIME_LINE_NOW";
     self.park.backgroundColor = self.actionButtonAccount.backgroundColor = self.themeColor;
     [self.actionButtonAccount setTitle:[[currentAccount.ID substringToIndex:1] uppercaseString] forState:UIControlStateNormal];
     
-    NSArray *schedules = ({
-        NSString *nowTimeString = ({
-            NSDateComponents *now = [TimeTalkerBird currentDate];
-            NSString *(^formatTimeFromStirng)(NSUInteger) = ^(NSUInteger time){
-                return time < 10 ? [NSString stringWithFormat:@"0%ld", time] : [NSString stringWithFormat:@"%ld", time];
-            };
-            [NSString stringWithFormat:@"%@:%@", formatTimeFromStirng(now.hour), formatTimeFromStirng(now.minute)];
-        });
-        
-        CRClassSchedule *current = ({
-            CRClassSchedule *current = [CRClassSchedule ClassCreateTempleSchedule];
-            current.scheduleID = TIME_LINE_NOW;
-            current.timeStart = nowTimeString;
-            current;
-        });
-        
-        NSUInteger weekday = ({
-            NSUInteger weekday = [CRSettings weekdayFromString:[CRSettings weekday]] - 1;
-            weekday == -2 ? 0 : weekday;
-        });
-        
-        NSMutableArray *schedules = [[NSMutableArray alloc] initWithArray:[CRClassCurrent classSchedule]];
-        
-        NSArray *row, *schedule;
-        NSMutableArray *todaySchedules = [[NSMutableArray alloc] initWithArray:schedules[weekday]];
-        row = [CRClassDatabase rowFromCRClassSchedule:current];
-        [todaySchedules addObject:row];
-        schedule = [CRClassDatabase sortCRClassScheduleByTime:(NSArray *)todaySchedules];
-        
-        self.timeLineIndexSection = weekday;
-        self.timeLineIndexRow = [schedule indexOfObject:row];
-        
-        [schedules replaceObjectAtIndex:weekday withObject:schedule];
-        
-        (NSArray *)schedules;
-    });
-    
-    self.testData = schedules;
-    [self.bear reloadData];
-    
-    [self.bear scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:self.timeLineIndexSection]
-                     atScrollPosition:UITableViewScrollPositionTop
-                             animated:NO];
-    
-    [self.shouldRelayoutGuide enumerateObjectsUsingBlock:^(id obj, NSUInteger i, BOOL *sS){
-        NSLayoutConstraint *con = (NSLayoutConstraint *)obj;
-        NSUInteger index = [con.identifier integerValue];
-        UIView *view = self.headerViews[index];
-        CGFloat fuck = view.frame.origin.y - self.view.frame.size.height - self.bear.contentOffset.y;
-        con.constant = fuck / 4;
-    }];
-    [self.bear layoutIfNeeded];
+    if( self.isViewDidAppear )
+        [self makeClassSchedule];
 }
 
-- (void)viewDidAppear:(BOOL)animated{
-    [super viewDidAppear:animated];
-    self.isViewDidAppear = YES;
+- (void)makeClassSchedule{
     
-    if( self.shouldPresentAddClassViewController ){
-        [self CRClassAddViewController];
-        self.shouldPresentAddClassViewController = NO;
-    }
+    if( !queue )
+        queue = dispatch_queue_create("class_schedule_queue", DISPATCH_QUEUE_CONCURRENT);
+    
+    [self.loadingView ON];
+    dispatch_async(queue, ^{
+        
+        NSArray *schedules = ({
+            NSString *nowTimeString = ({
+                NSDateComponents *now = [TimeTalkerBird currentDate];
+                
+                NSString *(^formatTimeFromStirng)(NSUInteger) = ^(NSUInteger time){
+                    return time < 10 ? [NSString stringWithFormat:@"0%ld", time] : [NSString stringWithFormat:@"%ld", time];
+                };
+                
+                [NSString stringWithFormat:@"%@:%@", formatTimeFromStirng(now.hour), formatTimeFromStirng(now.minute)];
+            });
+            
+            CRClassSchedule *current = ({
+                CRClassSchedule *current = [CRClassSchedule ClassCreateTempleSchedule];
+                current.scheduleID = TIME_LINE_NOW;
+                current.timeStart = nowTimeString;
+                current;
+            });
+            
+            NSUInteger weekday = ({
+                NSUInteger weekday = [CRSettings weekdayFromString:[CRSettings weekday]] - 1;
+                weekday == -2 ? 0 : weekday;
+            });
+            
+            NSMutableArray *schedules = [[NSMutableArray alloc] initWithArray:[CRClassCurrent classSchedule]];
+            
+            NSArray *row, *schedule;
+            NSMutableArray *todaySchedules = [[NSMutableArray alloc] initWithArray:schedules[weekday]];
+            row = [CRClassDatabase rowFromCRClassSchedule:current];
+            [todaySchedules addObject:row];
+            schedule = [CRClassDatabase sortCRClassScheduleByTime:(NSArray *)todaySchedules];
+            
+            dispatch_async(dispatch_get_main_queue(), ^{
+                
+                self.timeLineIndexSection = weekday;
+                self.timeLineIndexRow = [schedule indexOfObject:row];
+            });
+            
+            [schedules replaceObjectAtIndex:weekday withObject:schedule];
+            
+            (NSArray *)schedules;
+        });
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+            self.testData = schedules;
+            
+            if( self.isViewDidAppear )
+                [self.bear reloadData];
+            
+            [self.loadingView OFF];
+        });
+        
+    });
+
+}
+
+- (void)addNotificationObserver{
+    NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
+    
+    [center addObserver:self
+               selector:@selector(handlerShortcut)
+                   name:@"FUCK"
+                 object:nil];
+    
+    [center addObserver:self
+               selector:@selector(makeClassSchedule)
+                   name:CRClassScheduleUpdatedNotification
+                 object:nil];
+    
+    [center addObserver:self
+               selector:@selector(makeClassSchedule)
+                   name:CRClassShouldCheckTimeNotification
+                 object:nil];
+    
+    [center addObserver:self
+               selector:@selector(makeClassAccount)
+                   name:CRClassAccountDidChangeNotification
+                 object:nil];
 }
 
 - (void)check3DTouch{
@@ -168,6 +233,10 @@ static NSString *const TIME_LINE_NOW = @"TIME_LINE_NOW";
         [self CRClassAddViewController];
     else
         self.shouldPresentAddClassViewController = YES;
+}
+
+- (void)CRClassAddPreviewAction:(NSString *)type fromController:(UIViewController *)controller{
+    NSLog(@"%@", type);
 }
 
 - (void)previewingContext:(id<UIViewControllerPreviewing>)previewingContext commitViewController:(UIViewController *)viewControllerToCommit{
@@ -217,15 +286,24 @@ static NSString *const TIME_LINE_NOW = @"TIME_LINE_NOW";
     
     self.titleLabel = ({
         UILabel *label = [UILabel new];
+        label.translatesAutoresizingMaskIntoConstraints = NO;
         label.alpha = 0;
         label.textAlignment = NSTextAlignmentCenter;
         label.textColor = [UIColor whiteColor];
-        label.font = [CRSettings appFontOfSize:19];
+        label.font = [CRSettings appFontOfSize:27 weight:UIFontWeightLight];
+        [label makeShadowWithSize:CGSizeMake(0, 1) opacity:0.27 radius:3];
         label;
     });
     
+    self.parkImageView = ({
+        UIImageView *imageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"MM10.jpg"]];
+        imageView.translatesAutoresizingMaskIntoConstraints = NO;
+        imageView;
+    });
+    
     [self.view addAutolayoutSubviews:@[ self.park ]];
-    [self.park addAutolayoutSubviews:@[ self.titleLabel ]];
+//    [self.park addSubview:self.parkImageView];
+    [self.park addSubview:self.titleLabel];
     [CRLayout view:@[ self.park, self.view ] type:CREdgeTopLeftRight];
     self.parkLayoutGuide = [NSLayoutConstraint constraintWithItem:self.park
                                                         attribute:NSLayoutAttributeHeight
@@ -238,6 +316,14 @@ static NSString *const TIME_LINE_NOW = @"TIME_LINE_NOW";
     [CRLayout view:@[ self.titleLabel, self.park ] type:CREdgeBottom constants:UIEdgeInsetsMake(0, 0, -STATUS_BAR_HEIGHT, 0)];
     [CRLayout view:@[ self.titleLabel, self.park ] type:CREdgeLeftRight];
     [CRLayout view:@[ self.titleLabel ] type:CRFixedHeight constants:UIEdgeInsetsMake(0, 56, 0, 0)];
+    
+//    [CRLayout view:@[ self.parkImageView, self.park ] type:CREdgeBottomLeftRight];
+//    [self.parkImageView addConstraint:[CRLayout view:@[ self.parkImageView, self.parkImageView ]
+//                                           attribute:NSLayoutAttributeWidth
+//                                            relateBy:NSLayoutRelationEqual
+//                                           attribute:NSLayoutAttributeHeight
+//                                          multiplier:1.0
+//                                            constant:0]];
 }
 
 - (void)doActionButton{
@@ -271,6 +357,19 @@ static NSString *const TIME_LINE_NOW = @"TIME_LINE_NOW";
     [CRLayout view:@[ self.actionButton ] type:CRFixedEqual constants:UIEdgeInsetsMake(56, 56, 0, 0)];
     [CRLayout view:@[ self.actionButtonAccount, self.view ] type:CREdgeBottomRight constants:UIEdgeInsetsMake(0, 0, -( 32 + 56 ), -16)];
     [CRLayout view:@[ self.actionButtonAccount ] type:CRFixedEqual constants:UIEdgeInsetsMake(56, 56, 0, 0)];
+}
+
+- (void)makeLoading{
+    self.loadingView = ({
+        GoogleInboxLoadingView *loading = [GoogleInboxLoadingView new];
+        loading.translatesAutoresizingMaskIntoConstraints = NO;
+        loading;
+    });
+    [self.view addSubview:self.loadingView];
+    
+    [CRLayout view:@[ self.loadingView, self.view ] type:CREdgeBottomLeftRight];
+    [CRLayout view:@[ self.loadingView ] type:CRFixedHeight constants:UIEdgeInsetsMake(0, 5, 0, 0)];
+    [self.loadingView layoutIfNeeded];
 }
 
 - (void)doBear{
@@ -314,11 +413,14 @@ static NSString *const TIME_LINE_NOW = @"TIME_LINE_NOW";
         weekday = ({
             UILabel *weekday = [UILabel new];
             weekday.text = weekdays[fox];
+            weekday.textColor = [UIColor whiteColor];
+            weekday.backgroundColor = [UIColor clearColor];
+//            [weekday makeShadowWithSize:CGSizeMake(0, 1) opacity:0.57 radius:3];
             weekday.font = [CRSettings appFontOfSize:25];
             weekday;
         });
         
-        imageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:[NSString stringWithFormat:@"M%d.jpg", fox + 3]]];
+        imageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:[NSString stringWithFormat:@"M%d.jpg", fox + 4]]];
         
         [wrapper addAutolayoutSubviews:@[ imageView, weekday ]];
         [CRLayout view:@[ weekday, wrapper ] type:CREdgeAround constants:UIEdgeInsetsMake(8, 56, -78, -56)];
@@ -433,23 +535,27 @@ static NSString *const TIME_LINE_NOW = @"TIME_LINE_NOW";
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView{
     CGPoint scrollPoint = scrollView.contentOffset;
     
+    CGFloat scale;
     if( scrollPoint.y < -20 ){
         CGFloat offset = fabs(scrollPoint.y);
         CGFloat alpha = (offset - 56) / 56.0;
         if( alpha <= 1 && alpha >= 0 ) self.titleLabel.alpha = alpha;
         if( alpha >  1 && self.titleLabel.alpha != 1 ) self.titleLabel.alpha = 1;
+        scale = alpha;
         self.parkLayoutGuide.constant = offset;
     }else{
-        self.titleLabel.alpha = 0;
+        self.titleLabel.alpha = scale = 0;
         self.parkLayoutGuide.constant = STATUS_BAR_HEIGHT;
     }
     
+    __block UIView *view;
     [self.shouldRelayoutGuide enumerateObjectsUsingBlock:^(id obj, NSUInteger i, BOOL *sS){
         NSLayoutConstraint *con = (NSLayoutConstraint *)obj;
-        NSUInteger index = [con.identifier integerValue];
-        UIView *view = self.headerViews[index];
-        CGFloat fuck = view.frame.origin.y - scrollView.frame.size.height - scrollPoint.y;
-        con.constant = fuck / 4;
+        con.constant = ({
+            view = self.headerViews[[con.identifier integerValue]];
+            CGFloat fuck = view.frame.origin.y - scrollView.frame.size.height - scrollPoint.y;
+            fuck / 4;
+        });
     }];
     
     [self.view layoutIfNeeded];
@@ -499,12 +605,16 @@ static NSString *const TIME_LINE_NOW = @"TIME_LINE_NOW";
         VC;
     });
     
+    NSLog(@"%@", [UIApplication sharedApplication].keyWindow);
+    
     [self presentViewController:CRClassScheduleAdd animated:YES completion:nil];
 }
 
 - (void)CRAccountsViewController{
     CRAccountsViewController *accounts = [CRAccountsViewController new];
     [self presentViewController:accounts animated:YES completion:nil];
+//    [CRActionWindow openWindow];
+//    [self.view.window actionRemove];
 }
 
 - (void)animationFloatingButton:(UIView *)view{

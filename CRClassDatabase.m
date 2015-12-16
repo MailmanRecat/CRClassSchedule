@@ -241,9 +241,6 @@ static NSString *const CRClassAccountDataBaseKEY = @"CRCLASSACCOUNTDATABASEKEY";
     }];
     
     [[NSUserDefaults standardUserDefaults] setObject:accounts forKey:CRClassAccountDataBaseKEY];
-    [[NSNotificationCenter defaultCenter] postNotificationName:CRClassAccountDidChangeNotification
-                                                        object:nil
-                                                      userInfo:nil];
     
     return YES;
 }

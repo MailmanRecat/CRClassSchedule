@@ -115,7 +115,7 @@
         UILabel *parkTitle = [UILabel new];
         parkTitle.translatesAutoresizingMaskIntoConstraints = NO;
         parkTitle.textColor = [UIColor whiteColor];
-        parkTitle.font = [CRSettings appFontOfSize:21 weight:UIFontWeightMedium];
+        parkTitle.font = [CRSettings appFontOfSize:21 weight:UIFontWeightRegular];
         parkTitle;
     });
     

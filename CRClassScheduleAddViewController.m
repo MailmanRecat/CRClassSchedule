@@ -154,17 +154,6 @@
 }
 
 - (void)scheduleSave:(BOOL)dismiss{
-    NSLog(@"%@", self.classSchedule.scheduleID);
-    NSLog(@"%@", self.classSchedule.user);
-    NSLog(@"%@", self.classSchedule.weekday);
-    NSLog(@"%@", self.classSchedule.timeStart);
-    NSLog(@"%@", self.classSchedule.location);
-    NSLog(@"%@", self.classSchedule.classname);
-    NSLog(@"%@", self.classSchedule.teacher);
-    NSLog(@"%@", self.classSchedule.timeLong);
-    NSLog(@"%@", self.classSchedule.colorType);
-    NSLog(@"%@", self.classSchedule.userInfo);
-    NSLog(@"%@", self.classSchedule.type);
     
     BOOL saved;
     if( [self.classSchedule.scheduleID isEqualToString:ClassScheduleInvalidID] )
@@ -172,8 +161,11 @@
     else
         saved = [CRClassDatabase updateCRClassSchedule:self.classSchedule];
     
-    if( saved && dismiss )
+    if( saved && dismiss ){
         [self dismissViewControllerAnimated:YES completion:nil];
+        
+        [[NSNotificationCenter defaultCenter] postNotificationName:CRClassScheduleUpdatedNotification object:nil];
+    }
 }
 
 - (void)perferItem:(UIButton *)sender{

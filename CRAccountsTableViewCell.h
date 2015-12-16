@@ -14,6 +14,8 @@
 @property( nonatomic, strong ) UILabel *icon;
 @property( nonatomic, strong ) UILabel *accountName;
 
+- (void)editStyle:(BOOL)isEdit;
+
 - (void)makeCheck;
 - (void)makeUnCheck;
 

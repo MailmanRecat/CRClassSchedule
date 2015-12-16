@@ -9,6 +9,7 @@
 #define STATUS_BAR_HEIGHT [UIApplication sharedApplication].statusBarFrame.size.height
 
 #import "CRInfoViewController.h"
+#import "UIView+MOREShadow.h"
 #import "UIView+MOREStackLayoutView.h"
 #import "UIFont+MaterialDesignIcons.h"
 #import "CRSettings.h"
@@ -30,37 +31,46 @@
     self.view.backgroundColor = [UIColor whiteColor];
     self.cons = [NSMutableArray new];
     
-    [self doPark];
+    [self makePark];
 }
 
-- (void)doPark{
-    self.park = [UIView new];
-    self.dismissButton = [UIButton new];
-    self.nameplate = [UILabel new];
-    [self.view addAutolayoutSubviews:@[ self.park ]];
-    [self.park addAutolayoutSubviews:@[ self.dismissButton, self.nameplate ]];
-    [self.cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:self.park to:self.view type:EdgeTopLeftRightZero]];
-    [self.cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearFixed:self.park type:SpactecledBearFixedHeight constant:56 + STATUS_BAR_HEIGHT]];
-    [self.view addConstraints:self.cons];
-    [self.cons removeAllObjects];
-    [self.cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:self.dismissButton to:self.park type:EdgeBottomLeftZero]];
-    [self.cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearFixed:self.dismissButton type:SpactecledBearFixedEqual constant:56]];
-    [self.cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:self.nameplate to:self.park type:EdgeBottomRightZero]];
-    [self.cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:self.nameplate to:self.park type:EdgeTopZero
-                                                                 constant:STATUS_BAR_HEIGHT]];
-    [self.cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:self.nameplate to:self.park type:EdgeLeftZero constant:56 + 8]];
-    [self.park addConstraints:self.cons];
-    [self.cons removeAllObjects];
+- (void)makePark{
     
-    self.park.backgroundColor = [UIColor whiteColor];
+    self.park = ({
+        UIView *park = [UIView new];
+        park.translatesAutoresizingMaskIntoConstraints = NO;
+        park.backgroundColor = [UIColor whiteColor];
+        [park makeShadowWithSize:CGSizeMake(0, 1) opacity:0.0f radius:1.7];
+        park;
+    });
     
-    self.dismissButton.titleLabel.font = [UIFont MaterialDesignIcons];
-    [self.dismissButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
-    [self.dismissButton setTitle:[UIFont mdiArrowLeft] forState:UIControlStateNormal];
-    [self.dismissButton addTarget:self action:@selector(dismissSelf) forControlEvents:UIControlEventTouchUpInside];
+    UIButton *button;
+    self.dismissButton = ({
+        button = [[UIButton alloc] initWithFrame:CGRectMake(0, STATUS_BAR_HEIGHT, 56, 56)];
+        button.titleLabel.font = [UIFont MaterialDesignIcons];
+        [button setTitleColor:[UIColor colorWithWhite:157 / 255.0 alpha:1] forState:UIControlStateNormal];
+        [button setTitle:[UIFont mdiArrowLeft] forState:UIControlStateNormal];
+        [button addTarget:self action:@selector(dismissSelf) forControlEvents:UIControlEventTouchUpInside];
+        button;
+    });
     
-    self.nameplate.font = [CRSettings appFontOfSize:21];
-    self.nameplate.text = @"Info";
+    self.nameplate = ({
+        UILabel *name = [UILabel new];
+        name.translatesAutoresizingMaskIntoConstraints = NO;
+        name.font = [CRSettings appFontOfSize:21 weight:UIFontWeightRegular];
+        name.text = @"About";
+        name.textColor = [UIColor colorWithWhite:57 / 255.0 alpha:1];
+        name;
+    });
+    
+    [self.view addSubview:self.park];
+    [self.park addSubview:self.dismissButton];
+    [self.park addSubview:self.nameplate];
+    
+    [CRLayout view:@[ self.park, self.view ] type:CREdgeTopLeftRight];
+    [CRLayout view:@[ self.park ] type:CRFixedHeight constants:UIEdgeInsetsMake(0, 56 + STATUS_BAR_HEIGHT, 0, 0)];
+    [CRLayout view:@[ self.nameplate, self.park ] type:CREdgeAround constants:UIEdgeInsetsMake(STATUS_BAR_HEIGHT, 64, 0, -72)];
+
 }
 
 - (void)dismissSelf{

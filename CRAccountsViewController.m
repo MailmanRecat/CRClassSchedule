@@ -32,11 +32,14 @@
 @property( nonatomic, strong ) UIView *park;
 @property( nonatomic, strong ) UILabel *nameplate;
 @property( nonatomic, strong ) UIButton *dismissButton;
+@property( nonatomic, strong ) UIButton *editButton;
 
 @property( nonatomic, strong ) UITableView *bear;
 
 @property( nonatomic, assign ) NSUInteger selectedRow;
 @property( nonatomic, strong ) NSArray *accounts;
+
+@property( nonatomic, assign ) BOOL isEditing;
 
 @end
 
@@ -66,52 +69,74 @@
 }
 
 - (void)doPark{
-    self.park = [UIView new];
-    self.dismissButton = [UIButton new];
-    self.nameplate = [UILabel new];
-    [self.view addAutolayoutSubviews:@[ self.park ]];
-    [self.park addAutolayoutSubviews:@[ self.dismissButton, self.nameplate ]];
-    [self.cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:self.park to:self.view type:EdgeTopLeftRightZero]];
-    [self.cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearFixed:self.park type:SpactecledBearFixedHeight constant:56 + STATUS_BAR_HEIGHT]];
-    [self.view addConstraints:self.cons];
-    [self.cons removeAllObjects];
-    [self.cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:self.dismissButton to:self.park type:EdgeBottomLeftZero]];
-    [self.cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearFixed:self.dismissButton type:SpactecledBearFixedEqual constant:56]];
-    [self.cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:self.nameplate to:self.park type:EdgeBottomRightZero]];
-    [self.cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:self.nameplate to:self.park type:EdgeTopZero
-                                                                 constant:STATUS_BAR_HEIGHT]];
-    [self.cons addObjectsFromArray:[NSLayoutConstraint SpactecledBearEdeg:self.nameplate to:self.park type:EdgeLeftZero constant:56 + 8]];
-    [self.park addConstraints:self.cons];
-    [self.cons removeAllObjects];
     
-    self.park.backgroundColor = [UIColor whiteColor];
-    [self.park makeShadowWithSize:CGSizeMake(0, 1) opacity:0.0f radius:1.7];
+    self.park = ({
+        UIView *park = [UIView new];
+        park.translatesAutoresizingMaskIntoConstraints = NO;
+        park.backgroundColor = [UIColor whiteColor];
+        [park makeShadowWithSize:CGSizeMake(0, 1) opacity:0.0f radius:1.7];
+        park;
+    });
     
-    self.dismissButton.titleLabel.font = [UIFont MaterialDesignIcons];
-    [self.dismissButton setTitleColor:[UIColor colorWithWhite:157 / 255.0 alpha:1] forState:UIControlStateNormal];
-    [self.dismissButton setTitle:[UIFont mdiArrowLeft] forState:UIControlStateNormal];
-    [self.dismissButton addTarget:self action:@selector(dismissSelf) forControlEvents:UIControlEventTouchUpInside];
+    UIButton *button;
+    self.dismissButton = ({
+        button = [[UIButton alloc] initWithFrame:CGRectMake(0, STATUS_BAR_HEIGHT, 56, 56)];
+        button.titleLabel.font = [UIFont MaterialDesignIcons];
+        [button setTitleColor:[UIColor colorWithWhite:157 / 255.0 alpha:1] forState:UIControlStateNormal];
+        [button setTitle:[UIFont mdiArrowLeft] forState:UIControlStateNormal];
+        [button addTarget:self action:@selector(dismissSelf) forControlEvents:UIControlEventTouchUpInside];
+        button;
+    });
     
-    self.nameplate.font = [CRSettings appFontOfSize:21];
-    self.nameplate.text = @"Select accounts";
+    self.editButton = ({
+        button = [UIButton new];
+        button.translatesAutoresizingMaskIntoConstraints = NO;
+        button.titleLabel.font = [CRSettings appFontOfSize:17 weight:UIFontWeightRegular];
+        [button setTitleColor:[UIColor colorWithWhite:157 / 255.0 alpha:1] forState:UIControlStateNormal];
+        [button setTitle:@"Edit" forState:UIControlStateNormal];
+        [button addTarget:self action:@selector(removeAccount) forControlEvents:UIControlEventTouchUpInside];
+        button;
+    });
+    
+    self.nameplate = ({
+        UILabel *name = [UILabel new];
+        name.translatesAutoresizingMaskIntoConstraints = NO;
+        name.font = [CRSettings appFontOfSize:21 weight:UIFontWeightRegular];
+        name.text = @"Accounts";
+        name.textColor = [UIColor colorWithWhite:57 / 255.0 alpha:1];
+        name;
+    });
+    
+    [self.view addSubview:self.park];
+    [self.park addSubview:self.dismissButton];
+    [self.park addSubview:self.editButton];
+    [self.park addSubview:self.nameplate];
+    
+    [CRLayout view:@[ self.park, self.view ] type:CREdgeTopLeftRight];
+    [CRLayout view:@[ self.park ] type:CRFixedHeight constants:UIEdgeInsetsMake(0, 56 + STATUS_BAR_HEIGHT, 0, 0)];
+    [CRLayout view:@[ self.nameplate, self.park ] type:CREdgeAround constants:UIEdgeInsetsMake(STATUS_BAR_HEIGHT, 64, 0, -72)];
+    [CRLayout view:@[ self.editButton, self.park ] type:CREdgeTopRightBottom constants:UIEdgeInsetsMake(STATUS_BAR_HEIGHT, 0, 0, -8)];
+    [CRLayout view:@[ self.editButton ] type:CRFixedWidth constants:UIEdgeInsetsMake(64, 0, 0, 0)];
 }
 
 - (void)doBear{
-    _bear = [[UITableView alloc] initWithFrame:CGRectMake(0, 0, 0, 0) style:UITableViewStylePlain];
-    [self.view addAutolayoutSubviews:@[ _bear ]];
-    [self.view bringSubviewToFront:self.park];
-    [self.view addConstraints:[NSLayoutConstraint SpactecledBearEdeg:_bear to:self.view type:EdgeAroundZero]];
+    self.bear = ({
+        UITableView *bear = [[UITableView alloc] initWithFrame:CGRectMake(0, 0, 0, 0) style:UITableViewStylePlain];
+        bear.translatesAutoresizingMaskIntoConstraints = NO;
+        bear.sectionFooterHeight = 0.0f;
+        bear.sectionHeaderHeight = 0.0f;
+        bear.contentInset = UIEdgeInsetsMake(STATUS_BAR_HEIGHT + 56, 0, 0, 0);
+        bear.contentOffset = CGPointMake(0, -( 56 + STATUS_BAR_HEIGHT ));
+        bear.showsHorizontalScrollIndicator = bear.showsVerticalScrollIndicator = NO;
+        bear.backgroundColor = [UIColor colorWithWhite:237 / 255.0 alpha:1];
+        bear.separatorStyle = UITableViewCellSeparatorStyleNone;
+        bear.delegate = self;
+        bear.dataSource = self;
+        bear;
+    });
+    [self.view addSubview:self.bear];
     
-    _bear.sectionHeaderHeight = 0.0f;
-    _bear.sectionFooterHeight = 0.0f;
-    _bear.contentInset = UIEdgeInsetsMake(STATUS_BAR_HEIGHT + 56 + 0, 0, 0, 0);
-    _bear.contentOffset = CGPointMake(0, - 56 - STATUS_BAR_HEIGHT);
-    _bear.showsHorizontalScrollIndicator = NO;
-    _bear.showsVerticalScrollIndicator = NO;
-    _bear.backgroundColor = [UIColor colorWithWhite:237 / 255.0 alpha:1];
-    _bear.separatorStyle = UITableViewCellSeparatorStyleNone;
-    _bear.delegate = self;
-    _bear.dataSource = self;
+    [CRLayout view:@[ self.bear, self.view ] type:CREdgeAround];
 }
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView{
@@ -185,6 +210,11 @@
         [cell makeUnCheck];
     }
     
+    if( self.isEditing )
+        [cell editStyle:YES];
+    else
+        [cell editStyle:NO];
+    
     return cell;
 }
 
@@ -201,17 +231,36 @@
         });
     
     else if( indexPath.row != self.selectedRow ){
-        CRClassAccount *account = (CRClassAccount *)self.accounts[indexPath.row];
-
-        CRAccountsTableViewCell *cell = [tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:self.selectedRow inSection:0]];
-        [cell makeUnCheck];
-        cell = [tableView cellForRowAtIndexPath:indexPath];
-        [cell makeCheck];
         
-        self.selectedRow = indexPath.row;
-        [CRClassDatabase changeCRClassAccountCurrent:account];
-        self.accounts = [CRClassDatabase selectClassAccountFromAll];
+        if( self.isEditing ){
+            
+        }else{
+            CRClassAccount *account = (CRClassAccount *)self.accounts[indexPath.row];
+            
+            CRAccountsTableViewCell *cell = [tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:self.selectedRow inSection:0]];
+            [cell makeUnCheck];
+            cell = [tableView cellForRowAtIndexPath:indexPath];
+            [cell makeCheck];
+            
+            self.selectedRow = indexPath.row;
+            [CRClassDatabase changeCRClassAccountCurrent:account];
+            self.accounts = [CRClassDatabase selectClassAccountFromAll];
+            
+            [[NSNotificationCenter defaultCenter] postNotificationName:CRClassAccountDidChangeNotification object:nil];
+        }
+        
     }
+}
+
+- (void)removeAccount{
+    if( self.isEditing ){
+        self.isEditing = NO;
+        [self.editButton setTitle:@"Edit" forState:UIControlStateNormal];
+    }else{
+        self.isEditing = YES;
+        [self.editButton setTitle:@"Done" forState:UIControlStateNormal];
+    }
+    [self.bear reloadData];
 }
 
 - (void)CRTextFieldViewController{
@@ -229,10 +278,10 @@
 }
 
 - (void)CRInfoViewController{
-//    CRInfoViewController *info = [CRInfoViewController new];
-//    info.transitioningDelegate = self.transitioningDelegate;
-//    [self presentViewController:info animated:YES completion:nil];
-    [self CRDebugViewController];
+    CRInfoViewController *info = [CRInfoViewController new];
+    info.transitioningDelegate = self.transitionAnimationObject;
+    [self presentViewController:info animated:YES completion:nil];
+//    [self CRDebugViewController];
 }
 
 - (void)CRDebugViewController{

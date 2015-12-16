@@ -231,11 +231,10 @@
 }
 
 - (void)saveAccount{
-    NSLog(@"%d", self.saveable);
-    NSLog(@"%@ %@", self.account.ID, self.account.colorType);
     if( self.saveable ){
         [CRClassDatabase insertCRClassAccount:self.account];
         [CRClassDatabase changeCRClassAccountCurrent:self.account];
+        [[NSNotificationCenter defaultCenter] postNotificationName:CRClassAccountDidChangeNotification object:nil];
         [self dismissSelf];
     }else{
         if( ![self.infomation.text isEqualToString:@"account exists"] ){

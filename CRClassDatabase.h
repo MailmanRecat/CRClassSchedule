@@ -10,7 +10,7 @@
 #import "CRClassSchedule.h"
 #import "CRClassAccount.h"
 
-static NSString *const CRClassAccountDidChangeNotification = @"CRClassAccountDidChangeNotification";
+//static NSString *const CRClassAccountDidChangeNotification = @"CRClassAccountDidChangeNotification";
 
 static NSString *const CRSUNDAY = @"sunday";
 static NSString *const CRMONDAY = @"monday";

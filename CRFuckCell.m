@@ -31,12 +31,9 @@
 }
 
 - (void)makeLayout{
-    [self.contentView CRLayoutCache:[CRLayoutCons Layout:@[ self.icon, self.contentView ] :CRETopLeftBottom
-                                                        :(CGFloat[]){ 0, 0, 0, 0, 1.0 }]];
-    [self.contentView CRLayoutCache:[CRLayoutCons Layout:@[ self.icon ] :CRLEqualWidth :(CGFloat[]){ 56, 0, 1.0 }]];
-    [self.contentView CRLayoutCache:[CRLayoutCons Layout:@[ self.nameLabel, self.contentView ] :CREAround
-                                                        :(CGFloat[]){ 0, -8, 0, 72, 1.0 }]];
-    [self.contentView CRLayoutMake];
+    [CRLayout view:@[ self.icon, self.contentView ] type:CREdgeTopLeftBottom constants:UIEdgeInsetsMake(0, 0, 0, 0)];
+    [CRLayout view:@[ self.icon ] type:CRFixedWidth constants:UIEdgeInsetsMake(56, 0, 0, 0)];
+    [CRLayout view:@[ self.nameLabel, self.contentView ] type:CREdgeAround constants:UIEdgeInsetsMake(0, 72, 0, -8)];
 }
 
 @end
