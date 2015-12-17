@@ -161,7 +161,7 @@
                                                                constant:0];
     [self.view addConstraint:self.bearBottomLayoutGuide];
     
-    UIFont *appFont = [CRSettings appFontOfSize:17 weight:UIFontWeightRegular];
+    UIFont *appFont = [CRSettings appFontOfSize:19 weight:UIFontWeightRegular];
     
     self.classname = ({
         CRTextFieldView *classname = [[CRTextFieldView alloc] initWithoutIcon];
@@ -224,7 +224,7 @@
         userInfo.textView.font = appFont;
         userInfo.icon.text = [UIFont mdiPencil];
         userInfo.textView.delegate = self;
-        userInfo.textView.font = [CRSettings appFontOfSize:17];
+        userInfo.textView.font = appFont;
         userInfo.textView.textColor = [UIColor colorWithWhite:117 / 255.0 alpha:1];
         userInfo;
     });

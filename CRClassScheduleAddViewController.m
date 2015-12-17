@@ -13,10 +13,11 @@
 #import "UIView+MOREShadow.h"
 #import "UIView+MOREStackLayoutView.h"
 
+#import "UIWindow+CRAction.h"
 #import "CRClassScheduleViewModel.h"
 #import "CRClassScheduleEditModel.h"
 
-@interface CRClassScheduleAddViewController()
+@interface CRClassScheduleAddViewController()<CRActionHandler>
 
 @property( nonatomic, assign ) NSUInteger currentIndex;
 
@@ -60,6 +61,14 @@
     return @[ editAction, delete ];
 }
 
+- (void)actionConfrim:(NSString *)type{
+    if( [type isEqualToString:@"Delete"] ){
+        [CRClassDatabase deleteCRClassSchedule:self.classSchedule];
+        [[NSNotificationCenter defaultCenter] postNotificationName:CRClassScheduleUpdatedNotification object:nil];
+        [self dismissViewControllerAnimated:YES completion:nil];
+    }
+}
+
 - (void)viewDidLoad{
     [super viewDidLoad];
     self.view.backgroundColor = [UIColor whiteColor];
@@ -92,6 +101,11 @@
     }
     
     [self makeToolBar];
+    
+    if( self.type == 1 ){
+        self.leftButton.enabled = NO;
+        self.leftButton.hidden = YES;
+    }
 }
 
 - (void)viewWillAppear:(BOOL)animated{
@@ -172,66 +186,99 @@
     
     NSUInteger tag = sender.tag - 1000;
     
-    if( tag == 1 && self.type == 1 ){
-        [self scheduleSave:YES];
-        return;
-    }
-    
-    if( tag == 2 ){
-        if( self.type == 1 ){
+    if( self.type == 1 ){
+        
+        if( tag == 1 )
+            [self scheduleSave:YES];
+        
+        if( tag == 2 )
             [self dismissViewControllerAnimated:YES completion:nil];
+        
+        return;
+        
+    }else{
+        
+        if( tag == 0 ){
+            [self.view.window actionDeleteWithHandler:self];
             return;
         }
-        tag = 0;
+        
+        if( tag == 1 ){
+            if( self.currentIndex == 1 ){
+                [self scheduleSave:NO];
+                [self pop];
+                return;
+            }else{
+                [self push];
+                return;
+            }
+        }
+        
+        if( tag == 2 ){
+            [self pop];
+        }
+        
     }
+}
+
+- (void)push{
+    if( self.currentIndex == 1 ) return;
     
-    if( tag == self.currentIndex && [self.rightButton.titleLabel.text isEqualToString:@"Save"] ){
-        [self scheduleSave:NO];
-        tag = 0;
-    };
+    self.leftButton.enabled = NO;
+    self.leftButton.hidden = YES;
+    [self.rightButton setTitle:@"Save" forState:UIControlStateNormal];
     
-    if( tag == 0 ){
-        self.leftButton.enabled = YES;
-        [self.leftButton setTitleColor:[UIColor CRColorType:CRColorTypeGoogleTomato] forState:UIControlStateNormal];
-        [self.rightButton setTitle:@"Edit" forState:UIControlStateNormal];
-    }else{
-        self.leftButton.enabled = NO;
-        [self.leftButton setTitleColor:[UIColor clearColor] forState:UIControlStateNormal];
-        [self.rightButton setTitle:@"Save" forState:UIControlStateNormal];
-    }
-    
-    UIViewController *controller = self.items[tag];
+    UIViewController *controller = self.items[1];
     [self.view insertSubview:controller.view belowSubview:self.toolBar];
+    CGFloat fromPoint = 37;
+    [controller.view.layer addAnimation:[self transitionAnimation:fromPoint] forKey:@"changeViewController"];
     
-    CGFloat fromPoint = tag == 0 ? -37 : 37;
+    self.currentIndex = 1;
+}
+
+- (void)pop{
+    if( self.currentIndex == 0 ) return ;
     
-    CABasicAnimation *animation;
-    CABasicAnimation *opacityAnimation = ({
-        animation = [CABasicAnimation animationWithKeyPath:@"opacity"];
-        animation.fromValue = [NSNumber numberWithFloat:0.0f];
-        animation.toValue = [NSNumber numberWithFloat:1.0f];
-        animation;
-    });
+    self.leftButton.enabled = YES;
+    self.leftButton.hidden = NO;
+    [self.rightButton setTitle:@"Edit" forState:UIControlStateNormal];
     
-    CABasicAnimation *positionAnimation = ({
-        animation = [CABasicAnimation animationWithKeyPath:@"position.x"];
-        animation.fromValue = [NSNumber numberWithFloat:self.view.frame.size.width / 2 + fromPoint];
-        animation.toValue = [NSNumber numberWithFloat:self.view.frame.size.width / 2];
-        animation;
-    });
+    CGFloat fromPoint = -37;
+    UIViewController *controller = self.items[0];
+    [self.view insertSubview:controller.view belowSubview:self.toolBar];
+    [controller.view.layer addAnimation:[self transitionAnimation:fromPoint] forKey:@"changeViewController"];
     
-    CAAnimationGroup *group = ({
+    self.currentIndex = 0;
+}
+
+- (CAAnimationGroup *)transitionAnimation:(CGFloat)fromPoint{
+    
+    return ({
+        CABasicAnimation *animation;
+        CABasicAnimation *opacityAnimation = ({
+            animation = [CABasicAnimation animationWithKeyPath:@"opacity"];
+            animation.fromValue = [NSNumber numberWithFloat:0.0f];
+            animation.toValue = [NSNumber numberWithFloat:1.0f];
+            animation;
+        });
+        
+        CABasicAnimation *positionAnimation = ({
+            animation = [CABasicAnimation animationWithKeyPath:@"position.x"];
+            animation.fromValue = [NSNumber numberWithFloat:self.view.frame.size.width / 2 + fromPoint];
+            animation.toValue = [NSNumber numberWithFloat:self.view.frame.size.width / 2];
+            animation;
+        });
+        
         CAAnimationGroup *group = [CAAnimationGroup animation];
         group.animations = @[ opacityAnimation, positionAnimation ];
         group.timingFunction = [CAMediaTimingFunction functionWithControlPoints:0.4 :0 :0.2 :1];
         group.duration = 0.37f;
         group.delegate = self;
         group.removedOnCompletion = YES;
+        
         group;
     });
     
-    [controller.view.layer addAnimation:group forKey:@"changeViewController"];
-    self.currentIndex = tag;
 }
 
 - (void)animationDidStop:(CAAnimation *)anim finished:(BOOL)flag{

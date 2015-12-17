@@ -48,7 +48,7 @@
         [self.layer addSublayer:self.momentDot];
         
         self.startTime = [UILabel new];
-        self.startTime.font = [CRSettings appFontOfSize:15];
+        self.startTime.font = [CRSettings appFontOfSize:17 weight:UIFontWeightRegular];
         self.startTime.textColor = color;
         self.startTime.text = @"Now";
         self.startTime.textAlignment = NSTextAlignmentCenter;
@@ -166,9 +166,12 @@
 - (void)layoutSubviews{
     [super layoutSubviews];
     if( self.moment && self.momentDot ){
-        self.moment.frame = CGRectMake(72, 20, self.frame.size.width - 72 - 16, 2);
-        self.momentDot.frame = CGRectMake(72, 17, 8, 8);
-        self.startTime.frame = CGRectMake(16, 0, 56, 40);
+        
+        CGSize size = self.frame.size;
+        
+        self.moment.frame = CGRectMake(72, (size.height - 2) / 2, size.width - 72 - 16, 2);
+        self.momentDot.frame = CGRectMake(72, (size.height - 8) / 2, 8, 8);
+        self.startTime.frame = CGRectMake(8, 0, 56, size.height);
     }
 }
 

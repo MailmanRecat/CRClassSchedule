@@ -21,10 +21,10 @@
 #import "CRAccountAddViewController.h"
 #import "CRInfoViewController.h"
 #import "CRTextFieldViewController.h"
-
+#import "UIWindow+CRAction.h"
 #import "CRDebugViewController.h"
 
-@interface CRAccountsViewController()<UIScrollViewDelegate, UITableViewDataSource, UITableViewDelegate>
+@interface CRAccountsViewController()<CRActionHandler, UIScrollViewDelegate, UITableViewDataSource, UITableViewDelegate>
 
 @property( nonatomic, strong ) NSMutableArray *cons;
 @property( nonatomic, strong ) CRTransitionAnimationObject *transitionAnimationObject;
@@ -40,6 +40,8 @@
 @property( nonatomic, strong ) NSArray *accounts;
 
 @property( nonatomic, assign ) BOOL isEditing;
+
+@property( nonatomic, strong ) CRClassAccount *deleteAccount;
 
 @end
 
@@ -230,12 +232,16 @@
             [self CRAccountAddViewController];
         });
     
-    else if( indexPath.row != self.selectedRow ){
+    else{
         
+        CRClassAccount *account = (CRClassAccount *)self.accounts[indexPath.row];
+
         if( self.isEditing ){
             
-        }else{
-            CRClassAccount *account = (CRClassAccount *)self.accounts[indexPath.row];
+            self.deleteAccount = account;
+            [self.view.window actionRemoveWithHandler:self];
+            
+        }else if( indexPath.row != self.selectedRow ){
             
             CRAccountsTableViewCell *cell = [tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:self.selectedRow inSection:0]];
             [cell makeUnCheck];
@@ -250,6 +256,19 @@
         }
         
     }
+}
+
+- (void)actionConfrim:(NSString *)type{
+    [CRClassDatabase deleteCRClassAccountFromID:self.deleteAccount.ID];
+    self.accounts = [CRClassDatabase selectClassAccountFromAll];
+    
+    if( [self.deleteAccount.current isEqualToString:CRClassAccountCurrentYESKEY] && [self.accounts count] > 0 ){
+        [CRClassDatabase changeCRClassAccountCurrent:self.accounts[0]];
+        self.accounts = [CRClassDatabase selectClassAccountFromAll];
+        [[NSNotificationCenter defaultCenter] postNotificationName:CRClassAccountDidChangeNotification object:nil];
+    }
+    
+    [self.bear reloadData];
 }
 
 - (void)removeAccount{

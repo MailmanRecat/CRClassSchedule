@@ -7,11 +7,15 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "CRActionView.h"
 
 @interface UIWindow (CRAction)
 
 //@property( nonatomic, strong ) NSLayoutConstraint *guide;
 
-- (void)actionRemove;
+- (void)actionRemoveWithHandler:(id<CRActionHandler>)handler;
+- (void)actionDeleteWithHandler:(id<CRActionHandler>)handler;
+
+- (void)endAction;
 
 @end

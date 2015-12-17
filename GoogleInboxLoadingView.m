@@ -76,24 +76,6 @@
     [self addConstraints:[NSLayoutConstraint SpactecledBearEdeg:_Bear to:self type:EdgeTopBottomZero]];
     [_Bear addConstraints:[NSLayoutConstraint SpactecledBearFixed:_Bear type:SpactecledBearFixedWidth constant:0]];
     _Bear.backgroundColor = self.colors ? self.colors[0] : [UIColor whiteColor];
-    
-//    _testZero = [NSLayoutConstraint constraintWithItem:_Bear
-//                                             attribute:NSLayoutAttributeWidth
-//                                             relatedBy:NSLayoutRelationEqual
-//                                                toItem:nil
-//                                             attribute:NSLayoutAttributeNotAnAttribute
-//                                            multiplier:1.0
-//                                              constant:0];
-//    
-//    _testEdge = [NSLayoutConstraint constraintWithItem:_Bear
-//                                             attribute:NSLayoutAttributeWidth
-//                                             relatedBy:NSLayoutRelationEqual
-//                                                toItem:self
-//                                             attribute:NSLayoutAttributeWidth
-//                                            multiplier:1.0
-//                                              constant:0];
-//    [_Bear addConstraint:_testZero];
-    
 }
 
 - (void)doFuck{
@@ -110,8 +92,6 @@
         }
     }
     
-//    [_Bear removeConstraint:_testZero];
-//    [self addConstraint:_testEdge];
     [UIView animateWithDuration: self.duration animations:^{
         
         _nowFucking = YES;
@@ -123,8 +103,6 @@
         _nowFucking = NO;
         
         _target.constant = 0;
-//        [self removeConstraint:_testEdge];
-//        [_Bear addConstraint:_testZero];
         
         [self layoutIfNeeded];
         
@@ -182,7 +160,7 @@
         self.backgroundColor = color;
         
         _Bear.backgroundColor = _colors[ _index ];
-        
+        self.hidden = YES;
     }];
     
 }
@@ -192,6 +170,7 @@
     if( _shouldDoFuck )
         return;
     
+    self.hidden = NO;
     [self doFuck];
     _shouldDoFuck = YES;
     

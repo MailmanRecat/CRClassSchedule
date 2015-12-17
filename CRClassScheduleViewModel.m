@@ -47,7 +47,7 @@
 
 - (void)viewWillAppear:(BOOL)animated{
     self.park.backgroundColor = [CRSettings CRAppColorTypes][[self.classSchedule.colorType lowercaseString]];
-    self.parkTitle.text = [self.classSchedule.classname isEqualToString:@"Class name"] ? @"(No title)" : self.classSchedule.classname;
+    self.parkTitle.text = [self.classSchedule.classname isEqualToString:@"Class name"] ? @"No Class name" : self.classSchedule.classname;
     if( !animated )
         [self.bear reloadData];
 }
@@ -73,7 +73,7 @@
         UILabel *parkTitle = [UILabel new];
         parkTitle.translatesAutoresizingMaskIntoConstraints = NO;
         parkTitle.textColor = [UIColor whiteColor];
-        parkTitle.font = [CRSettings appFontOfSize:37 weight:UIFontWeightLight];
+        parkTitle.font = [CRSettings appFontOfSize:37 weight:UIFontWeightRegular];
         parkTitle.adjustsFontSizeToFitWidth = YES;
         parkTitle.numberOfLines = 0;
         parkTitle;
@@ -115,8 +115,8 @@
         UITableView *bear = [[UITableView alloc] initWithFrame:CGRectMake(0, 0, 0, 0) style:UITableViewStylePlain];
         bear.translatesAutoresizingMaskIntoConstraints = NO;
         bear.sectionFooterHeight = 0;
-        bear.contentInset = UIEdgeInsetsMake(STATUS_BAR_HEIGHT + 56 + 72, 0, 0, 0);
-        bear.contentOffset = CGPointMake(0, - 0 - STATUS_BAR_HEIGHT);
+        bear.contentInset = UIEdgeInsetsMake(STATUS_BAR_HEIGHT + 56 + 72 + 16, 0, 52, 0);
+        bear.contentOffset = CGPointMake(0, - 56 - 72 - 16 - STATUS_BAR_HEIGHT);
         bear.showsHorizontalScrollIndicator = NO;
         bear.showsVerticalScrollIndicator = NO;
         bear.backgroundColor = [UIColor whiteColor];
@@ -141,32 +141,52 @@
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath{
-    return 60.0f;
+    if( indexPath.row == 5 )
+        return 256.0f;
+    
+    return 68.0f;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath{
     
-    CRFuckCell *cell = [tableView dequeueReusableCellWithIdentifier:CRFuckCellID];
-    if( !cell ){
-        cell = [[CRFuckCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CRFuckCellID];
-        cell.nameLabel.textColor = [UIColor colorWithWhite:37 / 255.0 alpha:1];
-        cell.nameLabel.font = [CRSettings appFontOfSize:17 weight:UIFontWeightRegular];
+    CRFuckCell *cell;
+    if( indexPath.row == 5 ){
+        cell = [tableView dequeueReusableCellWithIdentifier:CRFuckCellNoteID];
+        if( !cell ){
+            cell = [[CRFuckCell alloc] initNoteType];
+            cell.subLabel.font = [CRSettings appFontOfSize:15 weight:UIFontWeightRegular];
+            cell.nameLabel.font = [CRSettings appFontOfSize:19 weight:UIFontWeightRegular];
+        }
+    }else{
+        cell = [tableView dequeueReusableCellWithIdentifier:CRFuckCellID];
+        if( !cell ){
+            cell = [[CRFuckCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CRFuckCellID];
+            cell.subLabel.font = [CRSettings appFontOfSize:15 weight:UIFontWeightRegular];
+            cell.nameLabel.font = [CRSettings appFontOfSize:19 weight:UIFontWeightRegular];
+        }
     }
     
     cell.icon.text = self.icons[indexPath.row];
     
-    if( indexPath.row == 0 )
+    if( indexPath.row == 0 ){
+        cell.subLabel.text = @"When";
         cell.nameLabel.text = self.classSchedule.timeStart;
-    else if( indexPath.row == 1 )
+    }else if( indexPath.row == 1 ){
+        cell.subLabel.text = @"Where";
         cell.nameLabel.text = self.classSchedule.location;
-    else if( indexPath.row == 2 )
+    }else if( indexPath.row == 2 ){
+        cell.subLabel.text = @"Who";
         cell.nameLabel.text = self.classSchedule.teacher;
-    else if( indexPath.row == 3 )
+    }else if( indexPath.row == 3 ){
+        cell.subLabel.text = @"Weekday";
         cell.nameLabel.text = self.classSchedule.weekday;
-    else if( indexPath.row == 4 )
+    }else if( indexPath.row == 4 ){
+        cell.subLabel.text = @"How long";
         cell.nameLabel.text = self.classSchedule.timeLong;
-    else if( indexPath.row == 5 )
-        cell.nameLabel.text = self.classSchedule.userInfo;
+    }else if( indexPath.row == 5 ){
+        cell.subLabel.text = @"Note";
+        cell.nameLabel.text = [NSString stringWithFormat:@"%@", self.classSchedule.userInfo];
+    }
     
     return cell;
 }

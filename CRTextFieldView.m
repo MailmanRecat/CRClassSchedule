@@ -32,8 +32,8 @@
         [leftView addConstraints:[CRLayoutCons Layout:@[ self.icon ] :CRLEqualWidth :(CGFloat[]){ 56, 0, 1.0 }]];
         
         self.icon.textAlignment = NSTextAlignmentCenter;
-        self.icon.font = [UIFont MaterialDesignIconsWithSize:21];
-        self.icon.textColor = [UIColor colorWithWhite:117 / 255.0 alpha:1];
+        self.icon.font = [UIFont MaterialDesignIconsWithSize:24];
+        self.icon.textColor = [UIColor colorWithWhite:102 / 255.0 alpha:1];
         self.leftView = leftView;
         
         self.borderBottom = [CALayer layer];

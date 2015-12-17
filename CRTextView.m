@@ -22,7 +22,14 @@
     self = [super init];
     if( self ){
         self.icon = [UILabel new];
-        self.textView = [UITextView new];
+        
+        self.textView = ({
+            UITextView *v = [UITextView new];
+            v.textContainerInset = UIEdgeInsetsZero;
+            v.textContainer.lineFragmentPadding = 0;
+            v;
+        });
+        
         [self addAutolayoutSubviews:@[ self.icon, self.textView ]];
         self.borderBottom = [CALayer layer];
         [self.layer addSublayer:self.borderBottom];
@@ -30,10 +37,8 @@
         
         [self doLayout];
         
-        self.textView.textContainerInset = UIEdgeInsetsZero;
-        self.textView.textContainer.lineFragmentPadding = 0;
-        self.icon.font = [UIFont MaterialDesignIconsWithSize:21];
-        self.icon.textColor = [UIColor colorWithWhite:117 / 255.0 alpha:1];
+        self.icon.font = [UIFont MaterialDesignIconsWithSize:24];
+        self.icon.textColor = [UIColor colorWithWhite:102 / 255.0 alpha:1];
         self.icon.textAlignment = NSTextAlignmentCenter;
     }
     return self;

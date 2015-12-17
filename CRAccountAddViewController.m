@@ -16,10 +16,13 @@
 #import "CRSettings.h"
 #import "CRClassDatabase.h"
 #import "UIColor+CRColor.h"
+#import "GGAnimationSunrise.h"
 
 #import "MOREColorPickerView.h"
 
 @interface CRAccountAddViewController ()<CRColorPickerHandler, UITextFieldDelegate>
+
+@property( nonatomic, strong ) GGAnimationSunrise *sun;
 
 @property( nonatomic, strong ) NSLayoutConstraint *parkLeyoutGuide;
 @property( nonatomic, strong ) UIView *park;
@@ -36,6 +39,9 @@
 
 @property( nonatomic, assign ) BOOL shouldDismiss;
 
+@property( nonatomic, strong ) UIView *keyboardView;
+@property( nonatomic, strong ) UIColor *testColor;
+
 @end
 
 @implementation CRAccountAddViewController
@@ -43,32 +49,54 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.view.backgroundColor = [UIColor whiteColor];
+    self.sun = [[GGAnimationSunrise alloc] initWithType:GGAnimationSunriseTypeSerial blockOnCompletion:^( GGAnimationSunriseType type ){
+        self.view.backgroundColor = self.testColor;
+    }];
+    self.sun.duration = .77f;
     
     [self makePark];
     [self makeStep];
     [self addNotificationObserver];
     
-    self.account = [CRClassAccount accountFromDictionary:@{
-                                                           CRClassAccountCurrentKEY: @"NO",
-                                                           CRClassAccountIDKEY: @"no",
-                                                           CRClassAccountColorTypeKEY: @"default"
-                                                           }];
+    self.account = [CRClassAccount accountFromDefault];
+    
     self.saveable = NO;
     self.shouldDismiss = NO;
 }
 
 - (void)addNotificationObserver{
     NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
+    
     [center addObserver:self
-               selector:@selector(didKeyBoardHide)
-                   name:UIKeyboardDidHideNotification
+               selector:@selector(willKeyboardShow)
+                   name:UIKeyboardWillShowNotification
                  object:nil];
+    
 }
 
 - (void)viewDidAppear:(BOOL)animated{
+    [super viewDidAppear:animated];
+    
     if( self.isBeingPresented ){
         [self.textField becomeFirstResponder];
     }
+}
+
+- (void)viewWillDisappear:(BOOL)animated{
+    [super viewWillDisappear:animated];
+    
+    __block CGRect frame = self.keyboardView.frame;
+    frame.origin.x = self.view.frame.size.width;
+    
+    [self.transitionCoordinator animateAlongsideTransitionInView:self.keyboardView
+                                                       animation:^(id<UIViewControllerTransitionCoordinatorContext> context){
+                                                           
+                                                           self.keyboardView.frame = frame;
+                                                       }completion:^(id<UIViewControllerTransitionCoordinatorContext> context){
+                                                           
+                                                           self.keyboardView.hidden = YES;
+                                                           self.keyboardView = nil;
+                                                       }];
 }
 
 - (void)makePark{
@@ -103,6 +131,7 @@
     
     self.textField.backgroundColor = [UIColor whiteColor];
     self.textField.returnKeyType = UIReturnKeyDone;
+    self.textField.placeholder = @"name";
     self.textField.delegate = self;
     
     self.infomation.text = @"infomation";
@@ -132,18 +161,20 @@
     [CRLayout view:@[ self.guideText ] type:CRFixedHeight constants:UIEdgeInsetsMake(0, 48, 0, 0)];
     
     UIColor *defaultColor = [CRSettings MORESettingColorPickerOptionsColor][0];
+    self.guideText.hidden = YES;
     self.guideText.textColor = defaultColor;
+    self.view.backgroundColor = defaultColor;
     self.guideText.text = @"Done";
     self.guideText.textAlignment = NSTextAlignmentCenter;
     
     self.doneButton.layer.cornerRadius = self.nextButton.layer.cornerRadius = 56 / 2.0f;
-    self.doneButton.backgroundColor = defaultColor;
-    self.nextButton.backgroundColor = defaultColor;
+    self.doneButton.backgroundColor = [UIColor whiteColor];
+    self.nextButton.backgroundColor = [UIColor whiteColor];
     self.doneButton.titleLabel.font = self.nextButton.titleLabel.font = [UIFont MaterialDesignIcons];
     [self.doneButton setTitle:[UIFont mdiCheck] forState:UIControlStateNormal];
     [self.nextButton setTitle:[UIFont mdiChevronRight] forState:UIControlStateNormal];
-    [self.doneButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-    [self.nextButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    [self.doneButton setTitleColor:defaultColor forState:UIControlStateNormal];
+    [self.nextButton setTitleColor:defaultColor forState:UIControlStateNormal];
     [self.doneButton makeShadowWithSize:CGSizeMake(0.0f, 6.0f) opacity:0.3f radius:7.0f];
     [self.nextButton makeShadowWithSize:CGSizeMake(0.0f, 6.0f) opacity:0.3f radius:7.0f];
     [self.doneButton addTarget:self action:@selector(saveAccount) forControlEvents:UIControlEventTouchUpInside];
@@ -185,9 +216,22 @@
                      }completion:nil];
 }
 
-- (void)didKeyBoardHide{
-    if( self.shouldDismiss )
-        [self dismissSelf];
+- (void)willKeyboardShow{
+    
+    for( UIWindow *window in [[UIApplication sharedApplication] windows] ){
+        if( [window isKindOfClass:NSClassFromString(@"UIRemoteKeyboardWindow")] ){
+            for( UIView *subview in window.subviews ){
+                if( [subview isKindOfClass:NSClassFromString(@"UIInputSetContainerView")] ){
+                    for( UIView *subsubview in subview.subviews ){
+                        if( [subsubview isKindOfClass:NSClassFromString(@"UIInputSetHostView")] ){
+                            self.keyboardView = subsubview;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
 }
 
 - (BOOL)textFieldShouldReturn:(UITextField *)textField{
@@ -215,10 +259,10 @@
 }
 
 - (void)CRColorPickerDidDismissHandler:(UIColor *)color name:(NSString *)name{
-    [UIView animateWithDuration:0.25f
-                     animations:^{
-                         self.doneButton.backgroundColor = self.guideText.textColor = self.nextButton.backgroundColor = color;
-                     }];
+    self.testColor = color;
+    [self.sun sunriseAtLand:self.view location:CGPointMake(self.view.frame.size.width / 2, self.view.frame.size.height / 2) lightColor:color];
+    [self.doneButton setTitleColor:color forState:UIControlStateNormal];
+    [self.nextButton setTitleColor:color forState:UIControlStateNormal];
     self.account.colorType = name;
 }
 
@@ -246,17 +290,15 @@
 }
 
 - (void)dismissSelf{
-    if( [self.textField isFirstResponder] ){
-        [self.view endEditing:YES];
-        self.shouldDismiss = YES;
-        return;
-    }
     [self dismissViewControllerAnimated:YES completion:nil];
+}
+
+- (UIStatusBarStyle)preferredStatusBarStyle{
+    return UIStatusBarStyleLightContent;
 }
 
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
 }
 
 @end

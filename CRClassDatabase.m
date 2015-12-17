@@ -248,18 +248,16 @@ static NSString *const CRClassAccountDataBaseKEY = @"CRCLASSACCOUNTDATABASEKEY";
 + (BOOL)deleteCRClassAccountFromID:(NSString *)ID{
     if( ![CRClassDatabase haveCRClassAccount:ID] ) return YES;
     
-    __block NSString *key;
     NSMutableArray *accounts = [[NSMutableArray alloc] initWithArray:[CRClassDatabase selectAccountFromAll]];
     [accounts enumerateObjectsUsingBlock:^(id obj, NSUInteger index, BOOL *sS){
         NSArray *account = (NSArray *)obj;
         if( [account[1] isEqualToString:ID] ){
             [accounts removeObjectAtIndex:index];
-            key = [CRClassDatabase CRClassScheduleDatabaseKeyFromUser:accounts[1]];
             *sS = YES;
         }
     }];
     
-    [[NSUserDefaults standardUserDefaults] setObject:nil forKey:key];
+    [[NSUserDefaults standardUserDefaults] setObject:nil forKey:[CRClassDatabase CRClassScheduleDatabaseKeyFromUser:ID]];
     [[NSUserDefaults standardUserDefaults] setObject:accounts forKey:CRClassAccountDataBaseKEY];
     
     return YES;
