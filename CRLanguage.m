@@ -45,12 +45,7 @@ static NSString *const CRLanguagekey = @"CRLanguageKey";
            @"thursday": @"星期四",
            @"Friday": @"星期五",
            @"saturday": @"星期六",
-           @"sunday": @"星期日",
-           @"dont't have any class today": @"",
-           @"new class": @"",
-           @"save": @"",
-           @"delete": @"",
-           @"edit": @""
+           @"sunday": @"星期日"
            };
     
     cn = @{};

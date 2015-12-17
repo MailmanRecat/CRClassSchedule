@@ -33,7 +33,7 @@
         [self addAutolayoutSubviews:@[ self.icon, self.textView ]];
         self.borderBottom = [CALayer layer];
         [self.layer addSublayer:self.borderBottom];
-        self.borderBottom.backgroundColor = [UIColor colorWithWhite:217 / 255.0 alpha:1].CGColor;
+        self.borderBottom.backgroundColor = [UIColor clearColor].CGColor;
         
         [self doLayout];
         

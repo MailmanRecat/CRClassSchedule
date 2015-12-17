@@ -118,7 +118,7 @@ static NSString *const TIME_LINE_NOW = @"TIME_LINE_NOW";
     self.themeColor = [CRSettings CRAppColorTypes][[currentAccount.colorType lowercaseString]];
     
     self.titleLabel.text = currentAccount.ID;
-    self.park.backgroundColor = self.actionButtonAccount.backgroundColor = self.themeColor;
+    self.park.backgroundColor = self.actionButtonAccount.backgroundColor = self.view.backgroundColor = self.themeColor;
     [self.actionButtonAccount setTitle:[[currentAccount.ID substringToIndex:1] uppercaseString] forState:UIControlStateNormal];
     
     [self makeClassSchedule];
@@ -332,7 +332,7 @@ static NSString *const TIME_LINE_NOW = @"TIME_LINE_NOW";
         button.layer.cornerRadius = self.actionButtonAccount.layer.cornerRadius = 56 / 2.0f;
         button.titleLabel.font = [UIFont MaterialDesignIcons];
         button.backgroundColor = [UIColor CRColorType:CRColorTypeGoogleTomato];
-        [button.titleLabel makeShadowWithSize:CGSizeMake(0, 1) opacity:0.3f radius:1];
+        [button.titleLabel makeShadowWithSize:CGSizeMake(0, 1) opacity:0.3f radius:0.3];
         [button makeShadowWithSize:CGSizeMake(0.0f, 1.7f) opacity:0.3f radius:1.7f];
         [button setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
         [button setTitle:[UIFont mdiPlus] forState:UIControlStateNormal];
@@ -345,7 +345,7 @@ static NSString *const TIME_LINE_NOW = @"TIME_LINE_NOW";
         button.layer.cornerRadius = 56 / 2.0f;
         button.titleLabel.font = [CRSettings appFontOfSize:25 weight:UIFontWeightRegular];
         button.backgroundColor = [UIColor CRColorType:CRColorTypeGoogleYellow];
-        [button.titleLabel makeShadowWithSize:CGSizeMake(0, 1) opacity:0.3f radius:1];
+        [button.titleLabel makeShadowWithSize:CGSizeMake(0, 1) opacity:0.3f radius:0.3];
         [button makeShadowWithSize:CGSizeMake(0.0f, 1.7f) opacity:0.3f radius:1.7f];
         [button addTarget:self action:@selector(CRAccountsViewController) forControlEvents:UIControlEventTouchUpInside];
         [button setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
@@ -379,11 +379,11 @@ static NSString *const TIME_LINE_NOW = @"TIME_LINE_NOW";
         bear.translatesAutoresizingMaskIntoConstraints = NO;
         bear.sectionHeaderHeight = 142.0f;
         bear.sectionFooterHeight = 0;
-        bear.contentInset = UIEdgeInsetsMake(STATUS_BAR_HEIGHT + 0, 0, 0, 0);
-        bear.contentOffset = CGPointMake(0, - 0 - STATUS_BAR_HEIGHT);
+        bear.contentInset = UIEdgeInsetsMake(STATUS_BAR_HEIGHT, 0, 0, 0);
+        bear.contentOffset = CGPointMake(0, - STATUS_BAR_HEIGHT);
         bear.showsHorizontalScrollIndicator = NO;
         bear.showsVerticalScrollIndicator = NO;
-        bear.backgroundColor = [UIColor whiteColor];
+        bear.backgroundColor = [UIColor clearColor];
         bear.separatorStyle = UITableViewCellSeparatorStyleNone;
         bear.delegate = self;
         bear.dataSource = self;
@@ -436,7 +436,7 @@ static NSString *const TIME_LINE_NOW = @"TIME_LINE_NOW";
             border;
         });
         
-        imageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:[NSString stringWithFormat:@"M%d.jpg", fox + 1]]];
+        imageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:[NSString stringWithFormat:@"M%d.jpg", fox + 5]]];
         
         [wrapper addAutolayoutSubviews:@[ imageView, weekday, borderBottom ]];
         
@@ -500,6 +500,25 @@ static NSString *const TIME_LINE_NOW = @"TIME_LINE_NOW";
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section{
     return 158.0f;
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForFooterInSection:(NSInteger)section{
+    if( section == 6 )
+        return 8.0f;
+    
+    return 0.0f;
+}
+
+- (UIView *)tableView:(UITableView *)tableView viewForFooterInSection:(NSInteger)section{
+    
+    if( section != 6 )
+        return ({ [UIView new]; });
+    
+    return ({
+        UIView *footer = [UIView new];
+        footer.backgroundColor = [UIColor whiteColor];
+        footer;
+    });
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath{

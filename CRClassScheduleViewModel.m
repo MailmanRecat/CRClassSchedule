@@ -155,7 +155,7 @@
         if( !cell ){
             cell = [[CRFuckCell alloc] initNoteType];
             cell.subLabel.font = [CRSettings appFontOfSize:15 weight:UIFontWeightRegular];
-            cell.nameLabel.font = [CRSettings appFontOfSize:19 weight:UIFontWeightRegular];
+            cell.nameText.font = [CRSettings appFontOfSize:19 weight:UIFontWeightRegular];
         }
     }else{
         cell = [tableView dequeueReusableCellWithIdentifier:CRFuckCellID];
@@ -185,7 +185,7 @@
         cell.nameLabel.text = self.classSchedule.timeLong;
     }else if( indexPath.row == 5 ){
         cell.subLabel.text = @"Note";
-        cell.nameLabel.text = [NSString stringWithFormat:@"%@", self.classSchedule.userInfo];
+        cell.nameText.text = self.classSchedule.userInfo;
     }
     
     return cell;

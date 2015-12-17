@@ -16,6 +16,7 @@ static NSString *const CRFuckCellNoteID = @"CRFuckCellNoteID";
 @property( nonatomic, strong ) UILabel *icon;
 @property( nonatomic, strong ) UILabel *subLabel;
 @property( nonatomic, strong ) UILabel *nameLabel;
+@property( nonatomic, strong ) UITextView *nameText;
 
 - (instancetype)initNoteType;
 

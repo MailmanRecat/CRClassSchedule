@@ -14,13 +14,17 @@
 #import "UIFont+MaterialDesignIcons.h"
 #import "CRSettings.h"
 
-@interface CRInfoViewController ()
+#import "CRInfoTableviewCell.h"
 
-@property( nonatomic, strong ) NSMutableArray *cons;
+@interface CRInfoViewController ()<UITableViewDataSource, UITableViewDelegate>
 
 @property( nonatomic, strong ) UIView *park;
 @property( nonatomic, strong ) UIButton *dismissButton;
 @property( nonatomic, strong ) UILabel *nameplate;
+
+@property( nonatomic, strong ) UITableView *bear;
+
+@property( nonatomic, strong ) NSArray *info;
 
 @end
 
@@ -29,9 +33,24 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.view.backgroundColor = [UIColor whiteColor];
-    self.cons = [NSMutableArray new];
     
+    self.info = @[
+                  @[ @"Version", @"9.0" ],
+                  @[ @"Author", @"mailman" ],
+                  @[ @"Feedback", @"Email: mailmanrecat@gmail.com" ],
+                  @[ @"pictures source", @"Google" ]
+                  ];
+    
+    [self makeBear];
     [self makePark];
+}
+
+- (void)parkSunset{
+    self.park.layer.shadowOpacity = 0.27;
+}
+
+- (void)parkSunrise{
+    self.park.layer.shadowOpacity = 0;
 }
 
 - (void)makePark{
@@ -71,6 +90,56 @@
     [CRLayout view:@[ self.park ] type:CRFixedHeight constants:UIEdgeInsetsMake(0, 56 + STATUS_BAR_HEIGHT, 0, 0)];
     [CRLayout view:@[ self.nameplate, self.park ] type:CREdgeAround constants:UIEdgeInsetsMake(STATUS_BAR_HEIGHT, 64, 0, -72)];
 
+}
+
+- (void)makeBear{
+    self.bear = ({
+        UITableView *bear = [[UITableView alloc] initWithFrame:CGRectMake(0, 0, 0, 0) style:UITableViewStylePlain];
+        bear.translatesAutoresizingMaskIntoConstraints = NO;
+        bear.sectionFooterHeight = 0.0f;
+        bear.sectionHeaderHeight = 0.0f;
+        bear.contentInset = UIEdgeInsetsMake(STATUS_BAR_HEIGHT + 56, 0, 0, 0);
+        bear.contentOffset = CGPointMake(0, -( 56 + STATUS_BAR_HEIGHT ));
+        bear.showsHorizontalScrollIndicator = bear.showsVerticalScrollIndicator = NO;
+        bear.backgroundColor = [UIColor colorWithWhite:237 / 255.0 alpha:1];
+        bear.separatorStyle = UITableViewCellSeparatorStyleNone;
+        bear.delegate = self;
+        bear.dataSource = self;
+        bear;
+    });
+    [self.view addSubview:self.bear];
+    
+    [CRLayout view:@[ self.bear, self.view ] type:CREdgeAround];
+}
+
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView{
+    CGPoint point = scrollView.contentOffset;
+    if( point.y > -(56 + STATUS_BAR_HEIGHT) ){
+        [self parkSunset];
+    }else{
+        [self parkSunrise];
+    }
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath{
+    return 68;
+}
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section{
+    return [self.info count];
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath{
+    CRInfoTableviewCell *cell;
+    
+    cell = [tableView dequeueReusableCellWithIdentifier:CRInfoTableViewCellID];
+    if( !cell )
+        cell = [CRInfoTableviewCell new];
+    
+    cell.subLabel.text = self.info[indexPath.row][0];
+    cell.maiLabel.text = self.info[indexPath.row][1];
+    
+    return cell;
 }
 
 - (void)dismissSelf{
