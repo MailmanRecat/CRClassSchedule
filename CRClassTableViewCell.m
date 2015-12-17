@@ -68,7 +68,7 @@
         self.className.textColor = self.location.textColor = [UIColor whiteColor];
         self.wrapper.layer.cornerRadius = 3.0f;
         self.className.font = [CRSettings appFontOfSize:17 weight:UIFontWeightMedium];
-        self.location.font = [CRSettings appFontOfSize:14];
+        self.location.font = [CRSettings appFontOfSize:14 weight:UIFontWeightRegular];
     }
     return self;
 }

@@ -73,7 +73,8 @@ static NSString *const TIME_LINE_NOW = @"TIME_LINE_NOW";
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    [[self view] setBackgroundColor:[UIColor whiteColor]];
+    self.view.backgroundColor = [UIColor whiteColor];
+    self.isViewDidAppear = NO;
     
     self.transitionAnimationDafult = [CRTransitionAnimationObject defaultCRTransitionAnimation];
     self.shouldRelayoutGuide = [NSMutableArray new];
@@ -87,30 +88,23 @@ static NSString *const TIME_LINE_NOW = @"TIME_LINE_NOW";
     [self addNotificationObserver];
     [self check3DTouch];
     
-    [self makeClassSchedule];
+    [self makeClassAccount];
 }
 
 - (void)viewWillAppear:(BOOL)animated{
     [super viewWillAppear:animated];
     
     if( !self.isViewDidAppear ){
-        [self makeClassAccount];
         
-        NSUInteger section = ({
-            NSUInteger section = [CRSettings weekdayFromString:[CRSettings weekday]] - 1;
-            section == -2 ? 0 : section;
-        });
-        
-        [self layoutHeaderView:YES];
-        [self.bear scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:section]
+        [self.bear scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:self.timeLineIndexSection]
                          atScrollPosition:UITableViewScrollPositionTop
                                  animated:NO];
+        [self layoutHeaderView:YES];
     }
 }
 
 - (void)viewDidAppear:(BOOL)animated{
     [super viewDidAppear:animated];
-    
     self.isViewDidAppear = YES;
     
     if( self.shouldPresentAddClassViewController ){
@@ -127,8 +121,7 @@ static NSString *const TIME_LINE_NOW = @"TIME_LINE_NOW";
     self.park.backgroundColor = self.actionButtonAccount.backgroundColor = self.themeColor;
     [self.actionButtonAccount setTitle:[[currentAccount.ID substringToIndex:1] uppercaseString] forState:UIControlStateNormal];
     
-    if( self.isViewDidAppear )
-        [self makeClassSchedule];
+    [self makeClassSchedule];
 }
 
 - (void)makeClassSchedule{
@@ -139,6 +132,7 @@ static NSString *const TIME_LINE_NOW = @"TIME_LINE_NOW";
 }
 
 - (void)makeFullClassSchedule{
+    
     [self.loadingView ON];
     NSArray *schedules = ({
         NSString *nowTimeString = ({
@@ -197,11 +191,6 @@ static NSString *const TIME_LINE_NOW = @"TIME_LINE_NOW";
                  object:nil];
     
     [center addObserver:self
-               selector:@selector(makeClassSchedule)
-                   name:CRClassShouldCheckTimeNotification
-                 object:nil];
-    
-    [center addObserver:self
                selector:@selector(makeClassAccount)
                    name:CRClassAccountDidChangeNotification
                  object:nil];
@@ -213,8 +202,9 @@ static NSString *const TIME_LINE_NOW = @"TIME_LINE_NOW";
 }
 
 - (void)testing{
-    if( self.isViewDidAppear )
+    if( self.isViewDidAppear ){
         [self makeClassSchedule];
+    }
 }
 
 - (void)check3DTouch{
@@ -446,19 +436,19 @@ static NSString *const TIME_LINE_NOW = @"TIME_LINE_NOW";
             border;
         });
         
-        imageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:[NSString stringWithFormat:@"MM%d.jpg", fox + 1]]];
+        imageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:[NSString stringWithFormat:@"M%d.jpg", fox + 1]]];
         
         [wrapper addAutolayoutSubviews:@[ imageView, weekday, borderBottom ]];
         
         [CRLayout view:@[ weekday, wrapper ] type:CREdgeAround constants:UIEdgeInsetsMake(8, 56, -78, -56)];
         [CRLayout view:@[ imageView, wrapper ] type:CREdgeLeftRight];
-        [CRLayout view:@[ borderBottom, wrapper ] type:CREdgeBottomLeftRight];
-        [CRLayout view:@[ borderBottom ] type:CRFixedHeight constants:UIEdgeInsetsMake(0, 8, 0, 0)];
+        [CRLayout view:@[ borderBottom, wrapper ] type:CREdgeBottomLeftRight constants:UIEdgeInsetsMake(0, 0, 8, 0)];
+        [CRLayout view:@[ borderBottom ] type:CRFixedHeight constants:UIEdgeInsetsMake(0, 16, 0, 0)];
         
         if( borderTop ){
             [wrapper addSubview:borderTop];
-            [CRLayout view:@[ borderTop, wrapper ] type:CREdgeTopLeftRight];
-            [CRLayout view:@[ borderTop ] type:CRFixedHeight constants:UIEdgeInsetsMake(0, 8, 0, 0)];
+            [CRLayout view:@[ borderTop, wrapper ] type:CREdgeTopLeftRight constants:UIEdgeInsetsMake(-8, 0, 0, 0)];
+            [CRLayout view:@[ borderTop ] type:CRFixedHeight constants:UIEdgeInsetsMake(0, 16, 0, 0)];
         }
         
         con = [NSLayoutConstraint constraintWithItem:imageView
@@ -486,7 +476,6 @@ static NSString *const TIME_LINE_NOW = @"TIME_LINE_NOW";
 }
 
 - (void)layoutHeaderView:(BOOL)layoutIfNeed{
-    NSLog(@"layout %ld", [self.shouldRelayoutGuide count]);
     __block UIView *view;
     [self.shouldRelayoutGuide enumerateObjectsUsingBlock:^(id obj, NSUInteger i, BOOL *sS){
         NSLayoutConstraint *con = (NSLayoutConstraint *)obj;

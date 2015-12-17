@@ -175,11 +175,11 @@
     else
         saved = [CRClassDatabase updateCRClassSchedule:self.classSchedule];
     
-    if( saved && dismiss ){
-        [self dismissViewControllerAnimated:YES completion:nil];
-        
+    if( saved )
         [[NSNotificationCenter defaultCenter] postNotificationName:CRClassScheduleUpdatedNotification object:nil];
-    }
+    
+    if( dismiss )
+        [self dismissViewControllerAnimated:YES completion:nil];
 }
 
 - (void)perferItem:(UIButton *)sender{
@@ -292,7 +292,7 @@
         UIButton *button = [[UIButton alloc] init];
         button.translatesAutoresizingMaskIntoConstraints = NO;
         button.tag = tag;
-        button.titleLabel.font = [CRSettings appFontOfSize:17 weight:UIFontWeightRegular];
+        button.titleLabel.font = [CRSettings appFontOfSize:17 weight:UIFontWeightMedium];
         button.backgroundColor = [UIColor clearColor];
         [button addTarget:self action:@selector(perferItem:) forControlEvents:UIControlEventTouchUpInside];
         return button;

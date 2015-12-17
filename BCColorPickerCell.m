@@ -20,7 +20,7 @@
         [self addAutolayoutSubviews:@[ self.dotname, self.dot ]];
         [self doLayout];
         
-        self.dot.font = [UIFont MaterialDesignIconsWithSize:20];
+        self.dot.font = [UIFont MaterialDesignIconsWithSize:24];
         self.dot.backgroundColor = [UIColor clearColor];
         self.dot.textAlignment = NSTextAlignmentCenter;
         self.dot.text = [UIFont mdiCheckboxBlankCircleOutline];

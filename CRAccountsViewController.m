@@ -14,6 +14,7 @@
 #import "UIFont+MaterialDesignIcons.h"
 #import "CRSettings.h"
 #import "CRClassDatabase.h"
+#import "CRClassCurrent.h"
 #import "UIColor+CRColor.h"
 
 #import "CRTransitionAnimationObject.h"
@@ -117,7 +118,7 @@
     [CRLayout view:@[ self.park, self.view ] type:CREdgeTopLeftRight];
     [CRLayout view:@[ self.park ] type:CRFixedHeight constants:UIEdgeInsetsMake(0, 56 + STATUS_BAR_HEIGHT, 0, 0)];
     [CRLayout view:@[ self.nameplate, self.park ] type:CREdgeAround constants:UIEdgeInsetsMake(STATUS_BAR_HEIGHT, 64, 0, -72)];
-    [CRLayout view:@[ self.editButton, self.park ] type:CREdgeTopRightBottom constants:UIEdgeInsetsMake(STATUS_BAR_HEIGHT, 0, 0, -8)];
+    [CRLayout view:@[ self.editButton, self.park ] type:CREdgeTopRightBottom constants:UIEdgeInsetsMake(STATUS_BAR_HEIGHT, 0, 0, 0)];
     [CRLayout view:@[ self.editButton ] type:CRFixedWidth constants:UIEdgeInsetsMake(64, 0, 0, 0)];
 }
 
@@ -260,12 +261,18 @@
 
 - (void)actionConfrim:(NSString *)type{
     [CRClassDatabase deleteCRClassAccountFromID:self.deleteAccount.ID];
-    self.accounts = [CRClassDatabase selectClassAccountFromAll];
     
-    if( [self.deleteAccount.current isEqualToString:CRClassAccountCurrentYESKEY] && [self.accounts count] > 0 ){
-        [CRClassDatabase changeCRClassAccountCurrent:self.accounts[0]];
-        self.accounts = [CRClassDatabase selectClassAccountFromAll];
+    if( [self.deleteAccount.current isEqualToString:CRClassAccountCurrentYESKEY] ){
+        if( [self.accounts count] > 0 ){
+            [CRClassDatabase changeCRClassAccountCurrent:self.accounts[0]];
+            self.accounts = [CRClassDatabase selectClassAccountFromAll];
+        }else{
+            self.accounts = @[ [CRClassCurrent account] ];
+        }
+        
         [[NSNotificationCenter defaultCenter] postNotificationName:CRClassAccountDidChangeNotification object:nil];
+    }else{
+        self.accounts = [CRClassDatabase selectClassAccountFromAll];
     }
     
     [self.bear reloadData];
@@ -300,7 +307,6 @@
     CRInfoViewController *info = [CRInfoViewController new];
     info.transitioningDelegate = self.transitionAnimationObject;
     [self presentViewController:info animated:YES completion:nil];
-//    [self CRDebugViewController];
 }
 
 - (void)CRDebugViewController{

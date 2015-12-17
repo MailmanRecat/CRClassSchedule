@@ -52,7 +52,7 @@
     self.sun = [[GGAnimationSunrise alloc] initWithType:GGAnimationSunriseTypeSerial blockOnCompletion:^( GGAnimationSunriseType type ){
         self.view.backgroundColor = self.testColor;
     }];
-    self.sun.duration = .77f;
+    self.sun.duration = .6f;
     
     [self makePark];
     [self makeStep];
@@ -170,13 +170,13 @@
     self.doneButton.layer.cornerRadius = self.nextButton.layer.cornerRadius = 56 / 2.0f;
     self.doneButton.backgroundColor = [UIColor whiteColor];
     self.nextButton.backgroundColor = [UIColor whiteColor];
-    self.doneButton.titleLabel.font = self.nextButton.titleLabel.font = [UIFont MaterialDesignIcons];
+    self.doneButton.titleLabel.font = self.nextButton.titleLabel.font = [UIFont MaterialDesignIconsWithSize:28];
     [self.doneButton setTitle:[UIFont mdiCheck] forState:UIControlStateNormal];
     [self.nextButton setTitle:[UIFont mdiChevronRight] forState:UIControlStateNormal];
     [self.doneButton setTitleColor:defaultColor forState:UIControlStateNormal];
     [self.nextButton setTitleColor:defaultColor forState:UIControlStateNormal];
-    [self.doneButton makeShadowWithSize:CGSizeMake(0.0f, 6.0f) opacity:0.3f radius:7.0f];
-    [self.nextButton makeShadowWithSize:CGSizeMake(0.0f, 6.0f) opacity:0.3f radius:7.0f];
+    [self.doneButton makeShadowWithSize:CGSizeMake(0.0f, 1.7f) opacity:0.3f radius:1.7f];
+    [self.nextButton makeShadowWithSize:CGSizeMake(0.0f, 1.7f) opacity:0.3f radius:1.7f];
     [self.doneButton addTarget:self action:@selector(saveAccount) forControlEvents:UIControlEventTouchUpInside];
     [self.nextButton addTarget:self action:@selector(CRColorPickerViewController) forControlEvents:UIControlEventTouchUpInside];
 }
