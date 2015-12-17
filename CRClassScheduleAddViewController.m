@@ -10,6 +10,7 @@
 #import "CRSettings.h"
 #import "CRClassDatabase.h"
 #import "UIColor+CRColor.h"
+#import "UIFont+MaterialDesignIcons.h"
 #import "UIView+MOREShadow.h"
 #import "UIView+MOREStackLayoutView.h"
 
@@ -25,6 +26,8 @@
 @property( nonatomic, strong ) NSLayoutConstraint *toolBarLayoutGuide;
 @property( nonatomic, strong ) UIButton *leftButton;
 @property( nonatomic, strong ) UIButton *rightButton;
+@property( nonatomic, strong ) UIButton *dismissKeyboardButton;
+@property( nonatomic, strong ) NSLayoutConstraint *dismissKeyboardButtonGuide;
 
 @property( nonatomic, strong ) NSArray<UIViewController *> *items;
 
@@ -93,12 +96,12 @@
     if( self.type == 1 ){
         [self.view addSubview:editModel.view];
         self.currentIndex = 1;
-        editModel.title = @"New Class";
     }else{
         [self.view addSubview:viewModel.view];
         self.currentIndex = 0;
-        editModel.title = @"Edit Class";
     }
+    
+    editModel.title = self.title;
     
     [self makeToolBar];
     
@@ -130,6 +133,27 @@
                selector:@selector(willKeyBoardChangeFrame:)
                    name:UIKeyboardWillChangeFrameNotification
                  object:nil];
+    [center addObserver:self
+               selector:@selector(didKeyboardShow)
+                   name:UIKeyboardDidShowNotification
+                 object:nil];
+}
+
+- (void)didKeyboardShow{
+     for( UIWindow *window in [[UIApplication sharedApplication] windows] ){
+        if( [window isKindOfClass:NSClassFromString(@"UIRemoteKeyboardWindow")] ){
+            for( UIView *subview in window.subviews ){
+                if( [subview isKindOfClass:NSClassFromString(@"UIInputSetContainerView")] ){
+                    for( UIView *subsubview in subview.subviews ){
+                        if( [subsubview isKindOfClass:NSClassFromString(@"UIInputSetHostView")] ){
+                            if( subsubview.isHidden )
+                                subsubview.hidden = NO;
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 - (void)willKeyBoardChangeFrame:(NSNotification *)keyboardInfo{
@@ -138,30 +162,32 @@
     CGFloat duration = [info[UIKeyboardAnimationDurationUserInfoKey] floatValue];
     UIViewAnimationOptions option = [info[UIKeyboardAnimationCurveUserInfoKey] integerValue];
     
-    if( constant != 0 ){
-        [self.rightButton removeTarget:self action:@selector(perferItem:) forControlEvents:UIControlEventTouchUpInside];
-        [self.rightButton addTarget:self action:@selector(viewEndEdit) forControlEvents:UIControlEventTouchUpInside];
-    }
+    if( constant != 0 )
+        [self showDismissKeyboardButton:YES];
 
     [(CRClassScheduleEditModel *)self.items[1] bearBottomLayout:constant];
     self.toolBarLayoutGuide.constant = -constant > 0 ? 0 : -constant;
-    [self.rightButton setTitle:@"Done" forState:UIControlStateNormal];
+    
     [UIView animateWithDuration:duration
                           delay:0.0f
                         options:option
                      animations:^{
                          [self.view layoutIfNeeded];
                      }
-                     completion:^(BOOL isFinished){}];
+                     completion:nil];
 }
 
-- (void)viewEndEdit{
-    [self.view endEditing:YES];
-    [self.rightButton removeTarget:self action:@selector(viewEndEdit) forControlEvents:UIControlEventTouchUpInside];
-    [self.rightButton addTarget:self action:@selector(perferItem:) forControlEvents:UIControlEventTouchUpInside];
-    [self.rightButton setTitle:@"Save" forState:UIControlStateNormal];
+- (void)showDismissKeyboardButton:(BOOL)show{
+    
+    self.dismissKeyboardButtonGuide.constant = show ? 0.0f : 52.0f;
+    
+    [UIView animateWithDuration:0.25f
+                          delay:0.0
+                        options:( 7 << 16 )
+                     animations:^{
+                         [self.toolBar layoutIfNeeded];
+                     }completion:nil];
 }
-
 
 - (void)perferRightButtonColor:(UIColor *)color{
     [self.rightButton setTitleColor:color forState:UIControlStateNormal];
@@ -185,6 +211,12 @@
 - (void)perferItem:(UIButton *)sender{
     
     NSUInteger tag = sender.tag - 1000;
+    
+    if( tag == 7 ){
+        [self.view endEditing:YES];
+        [self showDismissKeyboardButton:NO];
+        return;
+    }
     
     if( self.type == 1 ){
         
@@ -301,6 +333,18 @@
     self.leftButton = makeButton( 1000 );
     self.rightButton = makeButton( 1001 );
     
+    self.dismissKeyboardButton = ({
+        UIButton *button = [[UIButton alloc] init];
+        button.translatesAutoresizingMaskIntoConstraints = NO;
+        button.tag = 1007;
+        button.titleLabel.font = [UIFont MaterialDesignIconsWithSize:24];
+        button.backgroundColor = [UIColor whiteColor];
+        [button setTitle:[UIFont mdiKeyboardClose] forState:UIControlStateNormal];
+        [button setTitleColor:[UIColor colorWithWhite:102 / 255.0 alpha:1] forState:UIControlStateNormal];
+        [button addTarget:self action:@selector(perferItem:) forControlEvents:UIControlEventTouchUpInside];
+        button;
+    });
+    
     NSString *actionName = self.type == 1 ? @"Save" : @"Edit";
     UIColor *actionColor = self.type == 1 ? [UIColor clearColor] : [UIColor CRColorType:CRColorTypeGoogleTomato];
     
@@ -315,9 +359,11 @@
         toolBar;
     });
     
+    CGFloat toolBarHeight = 52.0f;
+    
     [self.view addSubview:self.toolBar];
     [CRLayout view:@[ self.toolBar, self.view ] type:CREdgeLeftRight];
-    [CRLayout view:@[ self.toolBar ] type:CRFixedHeight constants:UIEdgeInsetsMake(0, 52, 0, 0)];
+    [self.toolBar.heightAnchor constraintEqualToConstant:toolBarHeight].active = YES;
     self.toolBarLayoutGuide = [NSLayoutConstraint constraintWithItem:self.toolBar
                                                        attribute:NSLayoutAttributeBottom
                                                        relatedBy:NSLayoutRelationEqual
@@ -329,10 +375,18 @@
     
     [self.toolBar addSubview:self.leftButton];
     [self.toolBar addSubview:self.rightButton];
+    [self.toolBar addSubview:self.dismissKeyboardButton];
+    
     [CRLayout view:@[ self.leftButton, self.toolBar ] type:CREdgeTopLeftBottom constants:UIEdgeInsetsMake(8, 8, -8, 0)];
-    [CRLayout view:@[ self.leftButton ] type:CRFixedWidth constants:UIEdgeInsetsMake(72, 0, 0, 0)];
     [CRLayout view:@[ self.rightButton, self.toolBar ] type:CREdgeTopRightBottom constants:UIEdgeInsetsMake(8, 0, -8, -8)];
-    [CRLayout view:@[ self.rightButton ] type:CRFixedWidth constants:UIEdgeInsetsMake(72, 0, 0, 0)];
+    [self.leftButton.widthAnchor constraintEqualToConstant:72].active = YES;
+    [self.rightButton.widthAnchor constraintEqualToConstant:72].active = YES;
+    
+    [self.dismissKeyboardButton.widthAnchor constraintEqualToAnchor:self.toolBar.widthAnchor].active = YES;
+    [self.dismissKeyboardButton.heightAnchor constraintEqualToAnchor:self.toolBar.heightAnchor].active = YES;
+    [self.dismissKeyboardButton.centerXAnchor constraintEqualToAnchor:self.toolBar.centerXAnchor].active = YES;
+    self.dismissKeyboardButtonGuide = [self.dismissKeyboardButton.topAnchor constraintEqualToAnchor:self.toolBar.topAnchor constant:toolBarHeight];
+    self.dismissKeyboardButtonGuide.active = YES;
 }
 
 - (UIStatusBarStyle)preferredStatusBarStyle{

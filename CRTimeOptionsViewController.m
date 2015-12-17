@@ -274,8 +274,8 @@
     NSString *text;
     if( tableView.tag == 1024 ){
         
-        text = indexPath.row < 10 ? [NSString stringWithFormat:@"0%ld o'clock", indexPath.row] :
-        [NSString stringWithFormat:@"%ld o'clock", indexPath.row];
+        text = indexPath.row < 10 ? [NSString stringWithFormat:@"0%ld o'clock", (long)indexPath.row] :
+        [NSString stringWithFormat:@"%ld o'clock", (long)indexPath.row];
         
         cell.timeLabel.text = text;
     }else if( tableView.tag == 1060 ){
@@ -299,8 +299,8 @@
     }
 
     NSString *optionMin, *optionHou;
-    optionHou = self.hour < 10 ? [NSString stringWithFormat:@"0%ld", self.hour] : [NSString stringWithFormat:@"%ld", self.hour];
-    optionMin = self.min  < 10 ? [NSString stringWithFormat:@"0%ld", self.min]  : [NSString stringWithFormat:@"%ld", self.min];
+    optionHou = self.hour < 10 ? [NSString stringWithFormat:@"0%ld", (unsigned long)self.hour] : [NSString stringWithFormat:@"%ld", self.hour];
+    optionMin = self.min  < 10 ? [NSString stringWithFormat:@"0%ld", (unsigned long)self.min]  : [NSString stringWithFormat:@"%ld", self.min];
     self.option.text = [NSString stringWithFormat:@"%@:%@", optionHou, optionMin];
     
     self.timeString = self.option.text;

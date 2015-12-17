@@ -47,7 +47,7 @@
 
 - (void)viewWillAppear:(BOOL)animated{
     self.park.backgroundColor = [CRSettings CRAppColorTypes][[self.classSchedule.colorType lowercaseString]];
-    self.parkTitle.text = [self.classSchedule.classname isEqualToString:@"Class name"] ? @"No Class name" : self.classSchedule.classname;
+    self.parkTitle.text = [self.classSchedule.classname isEqualToString:@"Class name"] ? @"No class name" : self.classSchedule.classname;
     if( !animated )
         [self.bear reloadData];
 }
@@ -173,10 +173,10 @@
         cell.nameLabel.text = self.classSchedule.timeStart;
     }else if( indexPath.row == 1 ){
         cell.subLabel.text = @"Where";
-        cell.nameLabel.text = self.classSchedule.location;
+        cell.nameLabel.text = [self.classSchedule.location isEqualToString:@"Location"] ? @"Unknow classroom" : self.classSchedule.location;
     }else if( indexPath.row == 2 ){
         cell.subLabel.text = @"Who";
-        cell.nameLabel.text = self.classSchedule.teacher;
+        cell.nameLabel.text = [self.classSchedule.teacher isEqualToString:@"Teacher"] ? @"Unknow teacher" : self.classSchedule.teacher;
     }else if( indexPath.row == 3 ){
         cell.subLabel.text = @"Weekday";
         cell.nameLabel.text = self.classSchedule.weekday;

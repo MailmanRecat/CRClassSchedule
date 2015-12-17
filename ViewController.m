@@ -139,7 +139,7 @@ static NSString *const TIME_LINE_NOW = @"TIME_LINE_NOW";
             NSDateComponents *now = [TimeTalkerBird currentDate];
             
             NSString *(^formatTimeFromStirng)(NSUInteger) = ^(NSUInteger time){
-                return time < 10 ? [NSString stringWithFormat:@"0%ld", time] : [NSString stringWithFormat:@"%ld", time];
+                return time < 10 ? [NSString stringWithFormat:@"0%ld", (unsigned long)time] : [NSString stringWithFormat:@"%ld", (unsigned long)time];
             };
             
             [NSString stringWithFormat:@"%@:%@", formatTimeFromStirng(now.hour), formatTimeFromStirng(now.minute)];
@@ -229,6 +229,7 @@ static NSString *const TIME_LINE_NOW = @"TIME_LINE_NOW";
         
         [self presentViewController:({
             CRClassScheduleAddViewController *vc = [CRClassScheduleAddViewController new];
+            vc.title = @"Edit class";
             vc.type = 1;
             vc.classSchedule = self.previewSchedule;
             vc;
@@ -278,15 +279,14 @@ static NSString *const TIME_LINE_NOW = @"TIME_LINE_NOW";
     self.previewSchedule = [CRTestFunction scheduleFromNSArray:self.testData[indexPath.section][indexPath.row]];
     self.previewIndexPath = indexPath;
     
-    CRClassScheduleAddViewController *CRClassScheduleAddVC = ({
+    return ({
         CRClassScheduleAddViewController *VC = [CRClassScheduleAddViewController new];
         VC.previewActionHandler = self;
         VC.classSchedule = self.previewSchedule;
+        VC.title = @"Edit class";
         VC.isPreview = YES;
         VC;
     });
-    
-    return CRClassScheduleAddVC;
 }
 
 - (void)doPark{
@@ -578,8 +578,8 @@ static NSString *const TIME_LINE_NOW = @"TIME_LINE_NOW";
         CRCell.wrapper.backgroundColor = [CRSettings CRAppColorTypes][[schedule.colorType lowercaseString]];
         CRCell.startTime.text = schedule.timeStart;
         CRCell.startTime.textColor = CRCell.wrapper.backgroundColor;
-        CRCell.className.text = [schedule.classname isEqualToString:@"Class name"] ? @"No Class Name" : schedule.classname;
-        CRCell.location.text = schedule.location;
+        CRCell.className.text = [schedule.classname isEqualToString:@"Class name"] ? @"No class Name" : schedule.classname;
+        CRCell.location.text = [schedule.location isEqualToString:@"Location"] ? @"Unknow classroom" : schedule.location;
         CRCell;
     });
     
@@ -631,6 +631,7 @@ static NSString *const TIME_LINE_NOW = @"TIME_LINE_NOW";
     
     CRClassScheduleAddViewController *CRClassScheduleAddVC = ({
         CRClassScheduleAddViewController *VC = [CRClassScheduleAddViewController new];
+        VC.title = @"Edit class";
         VC.classSchedule = schedule;
         VC.isPreview = NO;
         VC;
@@ -646,6 +647,7 @@ static NSString *const TIME_LINE_NOW = @"TIME_LINE_NOW";
     
     [self presentViewController:({
         CRClassScheduleAddViewController *vc = [CRClassScheduleAddViewController new];
+        vc.title = @"New class";
         vc.type = 1;
         vc.classSchedule = schedule;
         vc;

@@ -15,4 +15,6 @@ static NSString *const CRInfoTableViewCellID = @"CR_INFO_TABLEVIEW_CELL_ID";
 @property( nonatomic, strong ) UILabel *subLabel;
 @property( nonatomic, strong ) UILabel *maiLabel;
 
+- (void)makeBorder:(BOOL)hidden;
+
 @end

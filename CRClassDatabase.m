@@ -30,7 +30,7 @@ static NSString *const CRClassAccountDataBaseKEY = @"CRCLASSACCOUNTDATABASEKEY";
     NSUInteger scheduleID = [[NSUserDefaults standardUserDefaults] integerForKey:key];
     [[NSUserDefaults standardUserDefaults] setInteger:++scheduleID forKey:key];
     
-    return [NSString stringWithFormat:@"%@%ld", user, scheduleID];
+    return [NSString stringWithFormat:@"%@%ld", user, (unsigned long)scheduleID];
 }
 
 + (NSArray *)sortCRClassScheduleByTime:(NSArray *)schedule{

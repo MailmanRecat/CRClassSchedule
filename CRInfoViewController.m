@@ -136,6 +136,12 @@
     if( !cell )
         cell = [CRInfoTableviewCell new];
     
+//    if( indexPath.row == [self tableView:tableView numberOfRowsInSection:0] - 1 )
+    if( indexPath.row == 3 )
+        [cell makeBorder:YES];
+    else
+        [cell makeBorder:NO];
+    
     cell.subLabel.text = self.info[indexPath.row][0];
     cell.maiLabel.text = self.info[indexPath.row][1];
     

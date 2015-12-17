@@ -80,7 +80,7 @@
         self.classname.text = self.classSchedule.classname;
     }
     self.timeStart.textLabel.text = self.classSchedule.timeStart;
-    self.location.textLabel.text = self.classSchedule.location;
+    self.location.textLabel.text = [self.classSchedule.location isEqualToString:@"Location"] ? @"Classroom" : self.classSchedule.location;
     if( [self.classSchedule.teacher isEqualToString:@"Teacher"] ){
         self.teacher.placeholder = @"Teacher";
     }else{
@@ -183,6 +183,7 @@
         CRButtonView *location = [CRButtonView new];
         location.icon.text = [UIFont mdiMapMarker];
         location.textLabel.font = appFont;
+        location.textLabel.textColor = [UIColor colorWithWhite:102 / 255.0 alpha:1];
         [location addTarget:self action:@selector(CRTextFieldViewController) forControlEvents:UIControlEventTouchUpInside];
         location;
     });
@@ -405,7 +406,7 @@
     CRTextFieldViewController *textField = ({
         CRTextFieldViewController *textField = [CRTextFieldViewController new];
         textField.transitioningDelegate = self.transitionObject;
-        textField.placeholderString = @"Class room";
+        textField.placeholderString = @"Classroom";
         textField.handler = self;
         textField;
     });
