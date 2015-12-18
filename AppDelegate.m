@@ -28,7 +28,6 @@
 
 - (void)application:(UIApplication *)application performActionForShortcutItem:(UIApplicationShortcutItem *)shortcutItem completionHandler:(void (^)(BOOL))completionHandler{
     
-    NSLog(@"%@", shortcutItem.type);
     if( [shortcutItem.type isEqualToString:@"shortcutItemAdd"] ){
          [[NSNotificationCenter defaultCenter] postNotificationName:@"FUCK" object:self];
     }
@@ -36,8 +35,6 @@
 }
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
-    
-    [CRTestFunction runCRTestFunc];
     
     [self makeShortItems];
     return YES;

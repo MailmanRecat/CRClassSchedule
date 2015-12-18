@@ -565,25 +565,16 @@ static NSString *const TIME_LINE_NOW = @"TIME_LINE_NOW";
         });
     }
     
-    CRCell = [tableView dequeueReusableCellWithIdentifier:CRClassCellDefaultID];
-    if( !CRCell ){
-        CRCell = [[CRClassTableViewCell alloc] initFromDefault];
-    }
-    
-    CRCell = ({
-        CRCell = [tableView dequeueReusableCellWithIdentifier:CRClassCellDefaultID];
+    return ({
+        CRCell = [tableView dequeueReusableCellWithIdentifier:schedule.colorType];
         if( !CRCell )
-            CRCell = [[CRClassTableViewCell alloc] initFromDefault];
+            CRCell = [[CRClassTableViewCell alloc] initFromColorTypeString:schedule.colorType];
         
-        CRCell.wrapper.backgroundColor = [CRSettings CRAppColorTypes][[schedule.colorType lowercaseString]];
         CRCell.startTime.text = schedule.timeStart;
-        CRCell.startTime.textColor = CRCell.wrapper.backgroundColor;
         CRCell.className.text = [schedule.classname isEqualToString:@"Class name"] ? @"No class Name" : schedule.classname;
         CRCell.location.text = [schedule.location isEqualToString:@"Location"] ? @"Unknow classroom" : schedule.location;
         CRCell;
     });
-    
-    return CRCell;
 }
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView{

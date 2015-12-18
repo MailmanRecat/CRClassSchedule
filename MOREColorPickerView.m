@@ -50,7 +50,6 @@
 
 + (instancetype)shareColorPicker{
     static MOREColorPickerView *picker = nil;
-    if( picker ) return picker;
     
     static dispatch_once_t t_picker;
     dispatch_once(&t_picker, ^{
@@ -175,8 +174,6 @@
     [cell statusON];
     [last statusOFF];
     self.curIndexPath = indexPath;
-    
-//    NSLog(@"indexpath %@ %@", cell, last);
     
     self.curColor = cell.dot.textColor;
     self.curString = cell.dotname.text;

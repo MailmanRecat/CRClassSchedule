@@ -26,6 +26,8 @@ static NSString *const CRClassCellWhiteID = @"CRClassCellWhiteID";
 - (instancetype)initFromDefault;
 - (instancetype)initFromWhite;
 
+- (instancetype)initFromColorTypeString:(NSString *)string;
+
 - (void)setMomentColor:(UIColor *)color;
 
 - (void)makeTopWhiteSpace;

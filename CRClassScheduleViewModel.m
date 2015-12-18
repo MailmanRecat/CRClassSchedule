@@ -95,19 +95,10 @@
  
     [self.park addSubview:self.dismissButton];
     [self.park addSubview:self.parkTitle];
-    [CRLayout view:@[ self.parkTitle, self.park ] type:CREdgeBottomLeftRight constants:UIEdgeInsetsMake(0, 72, 0, -8)];
-    [self.parkTitle addConstraint:[CRLayout view:@[ self.parkTitle ]
-                                       attribute:NSLayoutAttributeHeight
-                                        relateBy:NSLayoutRelationGreaterThanOrEqual
-                                       attribute:NSLayoutAttributeNotAnAttribute
-                                      multiplier:1.0
-                                        constant:72]];
-    [self.parkTitle addConstraint:[CRLayout view:@[ self.parkTitle ]
-                                       attribute:NSLayoutAttributeHeight
-                                        relateBy:NSLayoutRelationLessThanOrEqual
-                                       attribute:NSLayoutAttributeNotAnAttribute
-                                      multiplier:1.0
-                                        constant:56 + 72]];
+    [CRLayout view:@[ self.parkTitle, self.park ] type:CREdgeBottomLeftRight constants:UIEdgeInsetsMake(0, 72, -4, -8)];
+    
+    [self.parkTitle.heightAnchor constraintGreaterThanOrEqualToConstant:72].active = YES;
+    [self.parkTitle.heightAnchor constraintLessThanOrEqualToConstant:56 + 72 - 4].active = YES;
 }
 
 - (void)makeBear{

@@ -421,6 +421,7 @@
     NSString *text = [textFieldString stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
     
     if( ![text isEqualToString:@""] ){
+        self.location.textLabel.textColor = [UIColor colorWithWhite:33 / 255.0 alpha:1];
         self.classSchedule.location = self.location.textLabel.text = text;
     }
 }

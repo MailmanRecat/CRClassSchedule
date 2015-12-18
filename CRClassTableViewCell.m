@@ -10,6 +10,7 @@
 #import "UIView+MOREStackLayoutView.h"
 #import "UIColor+Theme.h"
 #import "CRSettings.h"
+#import "CRTheme.h"
 
 @interface CRClassTableViewCell()
 
@@ -77,6 +78,23 @@
     self = [super initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CRClassCellWhiteID];
     if( self ){
         self.backgroundColor = [UIColor whiteColor];
+    }
+    return self;
+}
+
+- (instancetype)initFromColorTypeString:(NSString *)string{
+    self = [super initWithStyle:UITableViewCellStyleDefault reuseIdentifier:string];
+    if( self ){
+        [self initClass];
+        
+        UIColor *themeColor = [CRTheme themeColorFromString:string];
+        self.startTime.textColor = self.wrapper.backgroundColor = themeColor;
+        
+        self.startTime.font = [CRSettings appFontOfSize:21 weight:UIFontWeightMedium];
+        self.className.textColor = self.location.textColor = [UIColor whiteColor];
+        self.wrapper.layer.cornerRadius = 3.0f;
+        self.className.font = [CRSettings appFontOfSize:17 weight:UIFontWeightMedium];
+        self.location.font = [CRSettings appFontOfSize:14 weight:UIFontWeightRegular];
     }
     return self;
 }
