@@ -48,6 +48,14 @@
 
 @implementation CRAccountsViewController
 
+- (instancetype)init{
+    self = [super init];
+    if( self ){
+        self.title = @"Accounts";
+    }
+    return self;
+}
+
 - (void)viewDidLoad{
     [super viewDidLoad];
     self.view.backgroundColor = [UIColor whiteColor];
@@ -55,11 +63,18 @@
     self.transitionAnimationObject = [CRTransitionAnimationObject defaultCRTransitionAnimation];
     
     [self doBear];
-    [self doPark];
+    [self.crnavigationController.leftItemButton setTitle:@"Edit" forState:UIControlStateNormal];
 }
 
 - (void)viewWillAppear:(BOOL)animated{
     self.accounts = [CRClassDatabase selectClassAccountFromAll];
+    self.crnavigationController.leftItemButton.hidden = NO;
+    self.crnavigationController.leftItemButton.enabled = YES;
+    if( ![self.crnavigationController.leftItemButton respondsToSelector:@selector(removeAccount)] ){
+        [self.crnavigationController.leftItemButton addTarget:self
+                                                       action:@selector(removeAccount)
+                                             forControlEvents:UIControlEventTouchUpInside];
+    }
     [self.bear reloadData];
 }
 
@@ -145,9 +160,9 @@
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView{
     CGPoint point = scrollView.contentOffset;
     if( point.y > -(56 + STATUS_BAR_HEIGHT) ){
-        [self parkSunset];
+        [self.crnavigationController parkSunset];
     }else{
-        [self parkSunrise];
+        [self.crnavigationController parkSunrise];
     }
 }
 
@@ -225,6 +240,8 @@
     
     if( indexPath.row == [self.accounts count] + 1 )
         dispatch_async(dispatch_get_main_queue(), ^{
+            self.crnavigationController.leftItemButton.enabled = NO;
+            self.crnavigationController.leftItemButton.hidden = YES;
             [self CRInfoViewController];
         });
     
@@ -281,10 +298,10 @@
 - (void)removeAccount{
     if( self.isEditing ){
         self.isEditing = NO;
-        [self.editButton setTitle:@"Edit" forState:UIControlStateNormal];
+        [self.crnavigationController.leftItemButton setTitle:@"Edit" forState:UIControlStateNormal];
     }else{
         self.isEditing = YES;
-        [self.editButton setTitle:@"Done" forState:UIControlStateNormal];
+        [self.crnavigationController.leftItemButton setTitle:@"Done" forState:UIControlStateNormal];
     }
     [self.bear reloadData];
 }
@@ -305,8 +322,8 @@
 
 - (void)CRInfoViewController{
     CRInfoViewController *info = [CRInfoViewController new];
-    info.transitioningDelegate = self.transitionAnimationObject;
-    [self presentViewController:info animated:YES completion:nil];
+    
+    [self.crnavigationController crpushViewController:info animated:YES];
 }
 
 - (void)CRDebugViewController{

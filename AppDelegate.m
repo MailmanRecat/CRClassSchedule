@@ -8,7 +8,9 @@
 
 #import "AppDelegate.h"
 
+#import "CRDebug.h"
 #import "CRTestFunction.h"
+#import "CRFpsLabel.h"
 
 @interface AppDelegate ()
 
@@ -37,6 +39,13 @@
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     
     [self makeShortItems];
+    
+//    if( [CRDebug isDebug] ){
+//        UILabel *fps = [[CRFpsLabel alloc] initWithFrame:CGRectMake(0, 20, 100, 20)];
+//        [self.window addSubview:fps];
+//        fps.layer.zPosition = 9999;
+//    }
+    
     return YES;
 }
 

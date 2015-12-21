@@ -30,6 +30,15 @@
 
 @implementation CRInfoViewController
 
+- (instancetype)init{
+    self = [super init];
+    if( self ){
+        self.title = @"About";
+    }
+    return self;
+}
+
+
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.view.backgroundColor = [UIColor whiteColor];
@@ -42,15 +51,15 @@
                   ];
     
     [self makeBear];
-    [self makePark];
+//    [self makePark];
 }
 
 - (void)parkSunset{
-    self.park.layer.shadowOpacity = 0.27;
+    [self.crnavigationController parkSunset];
 }
 
 - (void)parkSunrise{
-    self.park.layer.shadowOpacity = 0;
+    [self.crnavigationController parkSunrise];
 }
 
 - (void)makePark{

@@ -7,7 +7,8 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "CRBasicViewController.h"
 
-@interface CRInfoViewController : UIViewController
+@interface CRInfoViewController : CRBasicViewController
 
 @end

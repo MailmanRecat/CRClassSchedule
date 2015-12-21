@@ -22,6 +22,7 @@
 #import "GoogleInboxLoadingView.h"
 
 #import "CRTransitionAnimationObject.h"
+#import "CRNavigationController.h"
 #import "CRAccountsViewController.h"
 #import "CRClassScheduleAddViewController.h"
 
@@ -312,14 +313,10 @@ static NSString *const TIME_LINE_NOW = @"TIME_LINE_NOW";
     [self.view addAutolayoutSubviews:@[ self.park ]];
     [self.park addSubview:self.titleLabel];
     [CRLayout view:@[ self.park, self.view ] type:CREdgeTopLeftRight];
-    self.parkLayoutGuide = [NSLayoutConstraint constraintWithItem:self.park
-                                                        attribute:NSLayoutAttributeHeight
-                                                        relatedBy:NSLayoutRelationEqual
-                                                           toItem:nil
-                                                        attribute:NSLayoutAttributeNotAnAttribute
-                                                       multiplier:1.0
-                                                         constant:STATUS_BAR_HEIGHT];
-    [self.view addConstraint:self.parkLayoutGuide];
+    
+    self.parkLayoutGuide = [self.park.heightAnchor constraintEqualToConstant:STATUS_BAR_HEIGHT];
+    self.parkLayoutGuide.active = YES;
+    
     [CRLayout view:@[ self.titleLabel, self.park ] type:CREdgeBottom constants:UIEdgeInsetsMake(0, 0, -STATUS_BAR_HEIGHT, 0)];
     [CRLayout view:@[ self.titleLabel, self.park ] type:CREdgeLeftRight];
     [CRLayout view:@[ self.titleLabel ] type:CRFixedHeight constants:UIEdgeInsetsMake(0, 56, 0, 0)];
@@ -451,22 +448,10 @@ static NSString *const TIME_LINE_NOW = @"TIME_LINE_NOW";
             [CRLayout view:@[ borderTop ] type:CRFixedHeight constants:UIEdgeInsetsMake(0, 16, 0, 0)];
         }
         
-        con = [NSLayoutConstraint constraintWithItem:imageView
-                                           attribute:NSLayoutAttributeTop
-                                           relatedBy:NSLayoutRelationEqual
-                                              toItem:wrapper
-                                           attribute:NSLayoutAttributeTop
-                                          multiplier:1.0
-                                            constant:-30];
+        con = [imageView.bottomAnchor constraintEqualToAnchor:wrapper.bottomAnchor constant:21];
+        con.active = YES;
         con.identifier = [NSString stringWithFormat:@"%d", fox];
-        [wrapper addConstraint:con];
-        [wrapper addConstraint:[NSLayoutConstraint constraintWithItem:imageView
-                                                            attribute:NSLayoutAttributeWidth
-                                                            relatedBy:NSLayoutRelationEqual
-                                                               toItem:imageView
-                                                            attribute:NSLayoutAttributeHeight
-                                                           multiplier:1.0
-                                                             constant:0]];
+        [imageView.widthAnchor constraintEqualToAnchor:imageView.heightAnchor].active = YES;
         
         [views addObject:wrapper];
         [layoutGuide addObject:con];
@@ -477,12 +462,11 @@ static NSString *const TIME_LINE_NOW = @"TIME_LINE_NOW";
 
 - (void)layoutHeaderView:(BOOL)layoutIfNeed{
     __block UIView *view;
-    [self.shouldRelayoutGuide enumerateObjectsUsingBlock:^(id obj, NSUInteger i, BOOL *sS){
-        NSLayoutConstraint *con = (NSLayoutConstraint *)obj;
-        con.constant = ({
-            view = self.headerViews[[con.identifier integerValue]];
+    [self.shouldRelayoutGuide enumerateObjectsUsingBlock:^(NSLayoutConstraint *obj, NSUInteger i, BOOL *sS){
+        obj.constant = ({
+            view = self.headerViews[[obj.identifier integerValue]];
             CGFloat fuck = view.frame.origin.y - self.view.frame.size.height - self.bear.contentOffset.y;
-            fuck / 4;
+            -fuck / 4;
         });
     }];
     
@@ -569,6 +553,7 @@ static NSString *const TIME_LINE_NOW = @"TIME_LINE_NOW";
         CRCell = [tableView dequeueReusableCellWithIdentifier:schedule.colorType];
         if( !CRCell )
             CRCell = [[CRClassTableViewCell alloc] initFromColorTypeString:schedule.colorType];
+
         
         CRCell.startTime.text = schedule.timeStart;
         CRCell.className.text = [schedule.classname isEqualToString:@"Class name"] ? @"No class Name" : schedule.classname;
@@ -648,8 +633,9 @@ static NSString *const TIME_LINE_NOW = @"TIME_LINE_NOW";
 - (void)CRAccountsViewController{
 
     [self presentViewController:({
-        
-        [CRAccountsViewController new];
+        [[CRNavigationController alloc] initWithRootViewController:({
+            [CRAccountsViewController new];
+        })];
         
     }) animated:YES completion:nil];
 }

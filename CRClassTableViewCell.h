@@ -30,9 +30,4 @@ static NSString *const CRClassCellWhiteID = @"CRClassCellWhiteID";
 
 - (void)setMomentColor:(UIColor *)color;
 
-- (void)makeTopWhiteSpace;
-- (void)makeBottomWhiteSpace;
-- (void)makeTopWhiteStroke;
-- (void)makeBottomWhiteStroke;
-
 @end
