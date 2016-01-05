@@ -26,8 +26,14 @@
 #import "CRAccountsViewController.h"
 #import "CRClassScheduleAddViewController.h"
 
+#import "CRVisualFloatingButton.h"
+
 #import "CRTestFunction.h"
 #import "UIWindow+CRAction.h"
+
+#import "KMCGeigerCounter.h"
+
+#import "CRApparentDiffView.h"
 
 static NSString *const TIME_LINE_NOW = @"TIME_LINE_NOW";
 
@@ -40,11 +46,13 @@ static NSString *const TIME_LINE_NOW = @"TIME_LINE_NOW";
 
 @property( nonatomic, strong ) CRTransitionAnimationObject *transitionAnimationDafult;
 
+@property( nonatomic, strong ) UIVisualEffectView *yosemite;
 @property( nonatomic, strong ) UIView *park;
 @property( nonatomic, strong ) NSLayoutConstraint *parkLayoutGuide;
 @property( nonatomic, strong ) UILabel *titleLabel;
 @property( nonatomic, strong ) UIImageView *parkImageView;
 
+@property( nonatomic, strong ) CRVisualFloatingButton *letClass;
 @property( nonatomic, strong ) GoogleInboxLoadingView *loadingView;
 @property( nonatomic, strong ) UIButton *actionButton;
 @property( nonatomic, strong ) UIButton *actionButtonAccount;
@@ -81,9 +89,11 @@ static NSString *const TIME_LINE_NOW = @"TIME_LINE_NOW";
     self.shouldRelayoutGuide = [NSMutableArray new];
     
     [self doBear];
-    [self doPark];
+//    [self doPark];
+    [self letPark];
     [self doActionButton];
-    [self doHeaderViews];
+//    [self doHeaderViews];
+    [self letHeaderViews];
     [self makeLoading];
     
     [self addNotificationObserver];
@@ -290,6 +300,31 @@ static NSString *const TIME_LINE_NOW = @"TIME_LINE_NOW";
     });
 }
 
+- (void)letPark{
+    self.yosemite = ({
+        UIVisualEffectView *yose = [[UIVisualEffectView alloc] initWithEffect:[UIBlurEffect effectWithStyle:UIBlurEffectStyleLight]];
+        [yose setTranslatesAutoresizingMaskIntoConstraints:NO];
+        [self.view addSubview:yose];
+        [yose.topAnchor constraintEqualToAnchor:self.view.topAnchor].active = YES;
+        [yose.leftAnchor constraintEqualToAnchor:self.view.leftAnchor].active = YES;
+        [yose.rightAnchor constraintEqualToAnchor:self.view.rightAnchor].active = YES;
+        self.parkLayoutGuide = [yose.heightAnchor constraintEqualToConstant:STATUS_BAR_HEIGHT];
+        self.parkLayoutGuide.active = YES;
+        yose;
+    });
+    
+    self.titleLabel = ({
+        UILabel *label = [UILabel new];
+        label.translatesAutoresizingMaskIntoConstraints = NO;
+        label.alpha = 0;
+        label.textAlignment = NSTextAlignmentCenter;
+        label.textColor = [UIColor whiteColor];
+        label.font = [CRSettings appFontOfSize:27 weight:UIFontWeightRegular];
+        [label makeShadowWithSize:CGSizeMake(0, 1) opacity:0.27 radius:1];
+        label;
+    });
+}
+
 - (void)doPark{
     
     self.park = ({
@@ -337,6 +372,20 @@ static NSString *const TIME_LINE_NOW = @"TIME_LINE_NOW";
         button;
     });
     
+    self.actionButton.hidden = YES;
+    
+    self.letClass = ({
+        CRVisualFloatingButton *btn = [[CRVisualFloatingButton alloc] initFromFont:[UIFont MaterialDesignIconsWithSize:24]
+                                                                             title:[UIFont mdiPlus]
+                                                                   blurEffectStyle:UIBlurEffectStyleExtraLight];
+        [btn addTarget:self action:@selector(CRClassAddViewController) forControlEvents:UIControlEventTouchUpInside];
+        [btn setTranslatesAutoresizingMaskIntoConstraints:NO];
+        [self.view addSubview:btn];
+        [btn.rightAnchor constraintEqualToAnchor:self.view.rightAnchor constant:-16].active = YES;
+        [btn.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor constant:-16].active = YES;
+        btn;
+    });
+    
     self.actionButtonAccount = ({
         UIButton *button = [UIButton new];
         button.layer.cornerRadius = 56 / 2.0f;
@@ -380,7 +429,7 @@ static NSString *const TIME_LINE_NOW = @"TIME_LINE_NOW";
         bear.contentOffset = CGPointMake(0, - STATUS_BAR_HEIGHT);
         bear.showsHorizontalScrollIndicator = NO;
         bear.showsVerticalScrollIndicator = NO;
-        bear.backgroundColor = [UIColor clearColor];
+        bear.backgroundColor = [UIColor whiteColor];
         bear.separatorStyle = UITableViewCellSeparatorStyleNone;
         bear.delegate = self;
         bear.dataSource = self;
@@ -391,73 +440,84 @@ static NSString *const TIME_LINE_NOW = @"TIME_LINE_NOW";
 }
 
 - (void)doHeaderViews{
-    
-    NSMutableArray *views = [NSMutableArray new];
-    NSMutableArray *layoutGuide = [NSMutableArray new];
-    NSArray *weekdays = @[ @"Monday", @"Tuesday", @"Wednesday", @"Thursday", @"Friday", @"Saturday", @"Sunday" ];
-    
-    UIView *borderTop;
-    UIView *borderBottom;
-    UIView *wrapper;
-    UIImageView *imageView;
-    UILabel *weekday;
-    NSLayoutConstraint *con;
-    for( int fox = 0; fox < 7; fox++ ){
-        
-        wrapper = ({
-            UIView *wrapper = [UIView new];
-            wrapper.clipsToBounds = YES;
-            wrapper;
-        });
-        
-        weekday = ({
-            UILabel *weekday = [UILabel new];
-            weekday.text = weekdays[fox];
-            weekday.textColor = [UIColor whiteColor];
-            weekday.backgroundColor = [UIColor clearColor];
-            weekday.font = [CRSettings appFontOfSize:25 weight:UIFontWeightRegular];
-            weekday;
-        });
-        
-        if( fox != 0 )
-            borderTop = ({
-                UIView *border = [UIView new];
-                border.translatesAutoresizingMaskIntoConstraints = NO;
-                border.backgroundColor = [UIColor whiteColor];
-                border;
-            });
-        
-        borderBottom = ({
-            UIView *border = [UIView new];
-            border.backgroundColor = [UIColor whiteColor];
-            border;
-        });
-        
-        imageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:[NSString stringWithFormat:@"M%d.jpg", fox + 5]]];
-        
-        [wrapper addAutolayoutSubviews:@[ imageView, weekday, borderBottom ]];
-        
-        [CRLayout view:@[ weekday, wrapper ] type:CREdgeAround constants:UIEdgeInsetsMake(8, 56, -78, -56)];
-        [CRLayout view:@[ imageView, wrapper ] type:CREdgeLeftRight];
-        [CRLayout view:@[ borderBottom, wrapper ] type:CREdgeBottomLeftRight constants:UIEdgeInsetsMake(0, 0, 8, 0)];
-        [CRLayout view:@[ borderBottom ] type:CRFixedHeight constants:UIEdgeInsetsMake(0, 16, 0, 0)];
-        
-        if( borderTop ){
-            [wrapper addSubview:borderTop];
-            [CRLayout view:@[ borderTop, wrapper ] type:CREdgeTopLeftRight constants:UIEdgeInsetsMake(-8, 0, 0, 0)];
-            [CRLayout view:@[ borderTop ] type:CRFixedHeight constants:UIEdgeInsetsMake(0, 16, 0, 0)];
-        }
-        
-        con = [imageView.bottomAnchor constraintEqualToAnchor:wrapper.bottomAnchor constant:21];
-        con.active = YES;
-        con.identifier = [NSString stringWithFormat:@"%d", fox];
-        [imageView.widthAnchor constraintEqualToAnchor:imageView.heightAnchor].active = YES;
-        
-        [views addObject:wrapper];
-        [layoutGuide addObject:con];
-    }
-    self.headerViews = (NSArray *)views;
-    self.headerViewsLayoutGuide = (NSArray *)layoutGuide;
+//    
+//    NSMutableArray *views = [NSMutableArray new];
+//    NSMutableArray *layoutGuide = [NSMutableArray new];
+//    NSArray *weekdays = @[ @"Monday", @"Tuesday", @"Wednesday", @"Thursday", @"Friday", @"Saturday", @"Sunday" ];
+//    
+//    UIView *borderTop;
+//    UIView *borderBottom;
+//    UIView *wrapper;
+//    UIImageView *imageView;
+//    UILabel *weekday;
+//    NSLayoutConstraint *con;
+//    for( int fox = 0; fox < 7; fox++ ){
+//        
+//        wrapper = ({
+//            UIView *wrapper = [UIView new];
+//            wrapper.clipsToBounds = YES;
+//            wrapper;
+//        });
+//        
+//        weekday = ({
+//            UILabel *weekday = [UILabel new];
+//            weekday.text = weekdays[fox];
+//            weekday.textColor = [UIColor whiteColor];
+//            weekday.backgroundColor = [UIColor clearColor];
+//            weekday.font = [CRSettings appFontOfSize:25 weight:UIFontWeightRegular];
+//            weekday;
+//        });
+//        
+//        if( fox != 0 )
+//            borderTop = ({
+//                UIView *border = [UIView new];
+//                border.translatesAutoresizingMaskIntoConstraints = NO;
+//                border.backgroundColor = [UIColor whiteColor];
+//                border;
+//            });
+//        
+//        borderBottom = ({
+//            UIView *border = [UIView new];
+//            border.backgroundColor = [UIColor whiteColor];
+//            border;
+//        });
+//        
+//        imageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:[NSString stringWithFormat:@"M%d.jpg", fox + 5]]];
+//        imageView.contentMode = UIViewContentModeScaleAspectFill;
+//        
+//        [wrapper addAutolayoutSubviews:@[ imageView, weekday, borderBottom ]];
+//        
+//        [CRLayout view:@[ weekday, wrapper ] type:CREdgeAround constants:UIEdgeInsetsMake(8, 56, -78, -56)];
+//        [CRLayout view:@[ imageView, wrapper ] type:CREdgeLeftRight];
+//        [CRLayout view:@[ borderBottom, wrapper ] type:CREdgeBottomLeftRight constants:UIEdgeInsetsMake(0, 0, 8, 0)];
+//        [CRLayout view:@[ borderBottom ] type:CRFixedHeight constants:UIEdgeInsetsMake(0, 16, 0, 0)];
+//        
+//        if( borderTop ){
+//            [wrapper addSubview:borderTop];
+//            [CRLayout view:@[ borderTop, wrapper ] type:CREdgeTopLeftRight constants:UIEdgeInsetsMake(-8, 0, 0, 0)];
+//            [CRLayout view:@[ borderTop ] type:CRFixedHeight constants:UIEdgeInsetsMake(0, 16, 0, 0)];
+//        }
+//        
+//        con = [imageView.bottomAnchor constraintEqualToAnchor:wrapper.bottomAnchor constant:21];
+//        con.active = YES;
+//        con.identifier = [NSString stringWithFormat:@"%d", fox];
+//        [imageView.widthAnchor constraintEqualToAnchor:imageView.heightAnchor].active = YES;
+//        
+//        [views addObject:wrapper];
+//        [layoutGuide addObject:con];
+//    }
+//    self.headerViews = (NSArray *)views;
+//    self.headerViewsLayoutGuide = (NSArray *)layoutGuide;
+}
+
+- (void)letHeaderViews{
+    self.headerViews = [CRApparentDiffView fetchHeaderViews];
+    __block NSMutableArray *layout = [NSMutableArray new];
+    [self.headerViews enumerateObjectsUsingBlock:^(CRApparentDiffView *ad, NSUInteger index, BOOL *sS){
+        ad.photowallLayoutGuide.identifier = [NSString stringWithFormat:@"%ld", index];
+        [layout addObject:ad.photowallLayoutGuide];
+    }];
+    self.headerViewsLayoutGuide = (NSArray *)layout;
 }
 
 - (void)layoutHeaderView:(BOOL)layoutIfNeed{
@@ -599,7 +659,8 @@ static NSString *const TIME_LINE_NOW = @"TIME_LINE_NOW";
     if( indexPath.section == self.timeLineIndexSection && indexPath.row == self.timeLineIndexRow ) makeAnimation = YES;
     
     if( makeAnimation ){
-        [self animationFloatingButton:self.actionButton];
+//        [self animationFloatingButton:self.actionButton];
+        [self animationFloatingButton:self.letClass];
         return;
     }
     
@@ -677,7 +738,7 @@ static NSString *const TIME_LINE_NOW = @"TIME_LINE_NOW";
 }
 
 - (UIStatusBarStyle)preferredStatusBarStyle{
-    return UIStatusBarStyleLightContent;
+    return UIStatusBarStyleDefault;
 }
 
 - (void)didReceiveMemoryWarning {

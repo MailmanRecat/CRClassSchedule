@@ -90,7 +90,7 @@
         UIColor *themeColor = [CRTheme themeColorFromString:string];
         self.startTime.textColor = self.wrapper.backgroundColor = themeColor;
         
-        self.startTime.font = [CRSettings appFontOfSize:21 weight:UIFontWeightMedium];
+        self.startTime.font = [CRSettings appFontOfSize:17 weight:UIFontWeightRegular];
         self.className.textColor = self.location.textColor = [UIColor whiteColor];
         self.wrapper.layer.cornerRadius = 3.0f;
         self.className.font = [CRSettings appFontOfSize:17 weight:UIFontWeightMedium];
@@ -124,13 +124,13 @@
 
     [self.startTime.topAnchor constraintEqualToAnchor:self.contentView.topAnchor constant:10].active = YES;
     [self.startTime.heightAnchor constraintEqualToConstant:32].active = YES;
-    [self.startTime.rightAnchor constraintEqualToAnchor:self.wrapper.leftAnchor].active = YES;
+    [self.startTime.rightAnchor constraintEqualToAnchor:self.wrapper.leftAnchor constant:-8].active = YES;
     [self.wrapper.topAnchor constraintEqualToAnchor:self.contentView.topAnchor constant:10].active = YES;
     [self.wrapper.bottomAnchor constraintEqualToAnchor:self.contentView.bottomAnchor constant:-10].active = YES;
     [self.wrapper.rightAnchor constraintEqualToAnchor:self.contentView.rightAnchor constant:-16].active = YES;
     
     [CRLayout view:@[ self.startTime, self.contentView ] type:CREdgeLeft constants:UIEdgeInsetsMake(0, 16, 0, 0)];
-    [CRLayout view:@[ self.startTime ] type:CRFixedWidth constants:UIEdgeInsetsMake(72, 0, 0, 0)];
+    [CRLayout view:@[ self.startTime ] type:CRFixedWidth constants:UIEdgeInsetsMake(56, 0, 0, 0)];
     [CRLayout view:@[ self.className, self.wrapper ] type:CREdgeTopLeftRight constants:UIEdgeInsetsMake(8, 8, 0, -8)];
     [CRLayout view:@[ self.className ] type:CRFixedHeight constants:UIEdgeInsetsMake(0, classNameHeight, 0, 0)];
     [CRLayout view:@[ self.location, self.wrapper ] type:CREdgeTopLeftRight constants:UIEdgeInsetsMake(8 + classNameHeight, 8, 0, -8)];
